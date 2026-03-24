@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LoreForge.Api/LoreForge.Api.csproj" />
+    <Project Path="src/LoreForge.Core/LoreForge.Core.csproj" />
+    <Project Path="src/LoreForge.Infrastructure/LoreForge.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LoreForge.IntegrationTests/LoreForge.IntegrationTests.csproj" />
+    <Project Path="tests/LoreForge.UnitTests/LoreForge.UnitTests.csproj" />
+  </Folder>
+</Solution>
