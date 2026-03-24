@@ -1,10 +1,15 @@
+using LoreForge.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+var connectionString = builder.Configuration.GetConnectionString("Postgres")
+    ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
+
+builder.Services.AddDbContext<LoreForgeDbContext>(options =>
+    options.UseNpgsql(connectionString, o => o.UseVector()));
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
 
 app.UseHttpsRedirection();
 
