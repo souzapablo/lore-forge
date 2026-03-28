@@ -1,5 +1,6 @@
 using LoreForge.Core.Ports;
 using LoreForge.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
@@ -27,6 +28,9 @@ public abstract class BaseIntegrationTest : IDisposable
         EmbeddingService
             .EmbedAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(DefaultEmbedding);
+
+        Context.Works.ExecuteDelete();
+        Context.JournalEntries.ExecuteDelete();
     }
 
     public void Dispose() => _scope.Dispose();
