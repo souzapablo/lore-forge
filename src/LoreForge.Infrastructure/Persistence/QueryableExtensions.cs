@@ -24,6 +24,23 @@ public static class QueryableExtensions
         return query;
     }
 
+    public static IQueryable<JournalEntry> ApplyFilter(this IQueryable<JournalEntry> query, JournalEntryFilter filter)
+    {
+        if (filter.WorkId is not null)
+            query = query.Where(e => e.WorkId == filter.WorkId);
+
+        if (filter.Sources is { Length: > 0 })
+            query = query.Where(e => filter.Sources.Contains(e.Source));
+
+        if (filter.From is not null)
+            query = query.Where(e => e.CreatedAt >= filter.From);
+
+        if (filter.To is not null)
+            query = query.Where(e => e.CreatedAt <= filter.To);
+
+        return query;
+    }
+
     public static async Task<PagedResult<T>> ToPagedResultAsync<T>(
         this IQueryable<T> query,
         PaginationParams pagination,
