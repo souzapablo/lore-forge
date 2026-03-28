@@ -5,8 +5,12 @@ using LoreForge.Infrastructure.Bedrock;
 using LoreForge.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, config) =>
+    config.ReadFrom.Configuration(ctx.Configuration));
 
 var connectionString = builder.Configuration.GetConnectionString("Postgres")
     ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
@@ -29,6 +33,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
