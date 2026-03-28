@@ -1,5 +1,6 @@
 using LoreForge.Core.Entities;
 using LoreForge.Core.Ports;
+using LoreForge.Core.Primitives;
 using LoreForge.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -27,7 +28,7 @@ public record AddWorkNotesRequest(
 
 public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding)
 {
-    public async Task<Guid> HandleAsync(AddWorkRequest request, CancellationToken ct)
+    public async Task<Result<Guid>> HandleAsync(AddWorkRequest request, CancellationToken ct)
     {
         var embeddingText = BuildEmbeddingText(request);
         var vector = await embedding.EmbedAsync(embeddingText, ct);
@@ -56,7 +57,7 @@ public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding)
         db.Works.Add(work);
         await db.SaveChangesAsync(ct);
 
-        return work.Id;
+        return Result.Success(work.Id);
     }
 
     private static string BuildEmbeddingText(AddWorkRequest r)
@@ -75,5 +76,11 @@ public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding)
         app.MapPost("/logbook/works", async (
             [FromBody] AddWorkRequest request,
             [FromServices] AddWorkHandler handler,
-            CancellationToken ct) => Results.Ok(await handler.HandleAsync(request, ct)));
+            CancellationToken ct) =>
+        {
+            var result = await handler.HandleAsync(request, ct);
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.BadRequest(result.Error);
+        });
 }
