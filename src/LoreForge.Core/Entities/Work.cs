@@ -24,6 +24,18 @@ public class WorkNotes
     public string? Themes { get; set; }
     public string? PlotStructure { get; set; }
     public string? WhatILiked { get; set; }
+
+    public string ToEmbeddingText(string title)
+    {
+        var parts = new List<string> { title };
+        if (Worldbuilding is not null) parts.Add($"Worldbuilding: {Worldbuilding}");
+        if (Magic is not null) parts.Add($"Magic: {Magic}");
+        if (Characters is not null) parts.Add($"Characters: {Characters}");
+        if (Themes is not null) parts.Add($"Themes: {Themes}");
+        if (PlotStructure is not null) parts.Add($"Plot structure: {PlotStructure}");
+        if (WhatILiked is not null) parts.Add($"What I liked: {WhatILiked}");
+        return string.Join("\n", parts);
+    }
 }
 
 public enum WorkType
