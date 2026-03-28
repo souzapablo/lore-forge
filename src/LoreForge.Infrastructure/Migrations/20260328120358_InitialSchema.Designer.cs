@@ -4,18 +4,21 @@ using System.Text.Json;
 using LoreForge.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
 
 #nullable disable
 
-namespace LoreForge.Infrastructure.Persistence.Migrations
+namespace LoreForge.Infrastructure.Migrations
 {
     [DbContext(typeof(LoreForgeDbContext))]
-    partial class LoreForgeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260328120358_InitialSchema")]
+    partial class InitialSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,108 +32,134 @@ namespace LoreForge.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
                     b.Property<Vector>("Embedding")
                         .IsRequired()
-                        .HasColumnType("vector(1536)");
+                        .HasColumnType("vector(1024)")
+                        .HasColumnName("embedding");
 
                     b.Property<string>("FileRef")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("file_ref");
 
                     b.Property<string>("ProgressSnapshot")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("progress_snapshot");
 
                     b.Property<string>("RawContent")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("raw_content");
 
                     b.Property<int>("Source")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("source");
 
                     b.Property<Guid?>("WorkId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("work_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_journal_entries");
 
-                    b.ToTable("JournalEntries");
+                    b.ToTable("journal_entries", (string)null);
                 });
 
             modelBuilder.Entity("LoreForge.Core.Entities.Work", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
                     b.Property<Vector>("Embedding")
                         .IsRequired()
-                        .HasColumnType("vector(1536)");
+                        .HasColumnType("vector(1024)")
+                        .HasColumnName("embedding");
 
                     b.PrimitiveCollection<string[]>("Genres")
                         .IsRequired()
-                        .HasColumnType("text[]");
+                        .HasColumnType("text[]")
+                        .HasColumnName("genres");
 
                     b.Property<JsonDocument>("Progress")
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("progress");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.PrimitiveCollection<string[]>("Tags")
                         .IsRequired()
-                        .HasColumnType("text[]");
+                        .HasColumnType("text[]")
+                        .HasColumnName("tags");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("title");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_works");
 
-                    b.ToTable("Works");
+                    b.ToTable("works", (string)null);
                 });
 
             modelBuilder.Entity("LoreForge.Core.Entities.WorldNote", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<int>("Category")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("category");
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("content");
 
                     b.Property<Vector>("Embedding")
                         .IsRequired()
-                        .HasColumnType("vector(1536)");
+                        .HasColumnType("vector(1024)")
+                        .HasColumnName("embedding");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("title");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
                         .HasDefaultValueSql("now()");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_world_notes");
 
-                    b.ToTable("WorldNotes");
+                    b.ToTable("world_notes", (string)null);
                 });
 
             modelBuilder.Entity("LoreForge.Core.Entities.Work", b =>
@@ -153,14 +182,15 @@ namespace LoreForge.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("WorkId");
 
-                            b1.ToTable("Works");
+                            b1.ToTable("works");
 
                             b1
-                                .ToJson("Notes")
+                                .ToJson("notes")
                                 .HasColumnType("jsonb");
 
                             b1.WithOwner()
-                                .HasForeignKey("WorkId");
+                                .HasForeignKey("WorkId")
+                                .HasConstraintName("fk_works_works_id");
                         });
 
                     b.Navigation("Notes")

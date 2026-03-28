@@ -39,7 +39,7 @@ public class LoreForgeDbContext : DbContext
             entity.OwnsOne(e => e.Notes, notes => notes.ToJson());
             entity.Property(e => e.Embedding)
                 .HasConversion(vectorConverter, vectorComparer)
-                .HasColumnType("vector(1536)");
+                .HasColumnType("vector(1024)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
         });
 
@@ -49,7 +49,7 @@ public class LoreForgeDbContext : DbContext
             entity.Property(e => e.RawContent).IsRequired();
             entity.Property(e => e.Embedding)
                 .HasConversion(vectorConverter, vectorComparer)
-                .HasColumnType("vector(1536)");
+                .HasColumnType("vector(1024)");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
         });
 
@@ -60,7 +60,7 @@ public class LoreForgeDbContext : DbContext
             entity.Property(e => e.Content).IsRequired();
             entity.Property(e => e.Embedding)
                 .HasConversion(vectorConverter, vectorComparer)
-                .HasColumnType("vector(1536)");
+                .HasColumnType("vector(1024)");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
         });
     }
