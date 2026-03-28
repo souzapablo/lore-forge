@@ -19,9 +19,10 @@ You feed it your personal reactions and notes about works you've experienced. It
 | Framework | .NET Minimal API |
 | Architecture | Vertical Slice (no MediatR) |
 | AI | AWS Bedrock — Nova Micro + Titan Embeddings v2 |
-| Vector store | pgvector on RDS Postgres |
+| Vector store | pgvector on Postgres |
 | Conversation store | DynamoDB |
 | File storage | S3 |
+| Logging | Serilog → Console, File, Seq |
 
 ---
 
@@ -31,17 +32,21 @@ You feed it your personal reactions and notes about works you've experienced. It
 LoreForge.sln
 ├── src/
 │   ├── LoreForge.Api            # Startup, routing, all vertical slices
+│   │   ├── Extensions/          # IEndpoint, EndpointExtensions
 │   │   └── Features/
 │   │       ├── Logbook/         # AddWork, GetWorks, DeleteWork, AddJournalEntry, GetJournalEntries
 │   │       ├── Agent/           # Chat, GetHistory, ClearHistory
 │   │       └── WorldNotes/      # UpsertNote, GetNotes
 │   ├── LoreForge.Core           # Domain entities + port interfaces (no external deps)
 │   │   ├── Entities/
-│   │   └── Ports/
+│   │   ├── Errors/              # Named error factories per entity
+│   │   ├── Filtering/           # WorkFilter, PaginationParams
+│   │   ├── Ports/               # IEmbeddingService, IAgentService, IEndpoint, etc.
+│   │   └── Primitives/          # Result<T>, Error, PagedResult<T>
 │   └── LoreForge.Infrastructure # AWS Bedrock, pgvector, DynamoDB integrations
 │       ├── Bedrock/
 │       │   └── AgentTools/
-│       └── Persistence/
+│       └── Persistence/         # DbContext, migrations, QueryableExtensions
 └── tests/
     ├── LoreForge.UnitTests
     └── LoreForge.IntegrationTests
@@ -66,10 +71,30 @@ The AI agent can call these tools against your logbook:
 ## Prerequisites
 
 - .NET 10 SDK
-- PostgreSQL with pgvector extension
+- Docker (for local Postgres + Seq via docker compose)
 - AWS account with Bedrock access (Nova Micro + Titan Embeddings v2)
 - DynamoDB table for conversation history
 - S3 bucket for journal file uploads
+
+---
+
+## Running locally
+
+Start the infrastructure:
+
+```bash
+cd docker
+docker compose up -d
+```
+
+Run the API:
+
+```bash
+dotnet restore
+dotnet run --project src/LoreForge.Api
+```
+
+Seq UI is available at `http://localhost:5342`.
 
 ---
 
@@ -77,30 +102,25 @@ The AI agent can call these tools against your logbook:
 
 ```json
 {
+  "ConnectionStrings": {
+    "Postgres": "<your-postgres-connection-string>"
+  },
   "Bedrock": {
     "AgentModelId": "amazon.nova-micro-v1:0",
     "EmbeddingModelId": "amazon.titan-embed-text-v2:0"
-  },
-  "ConnectionStrings": {
-    "Postgres": "<your-postgres-connection-string>"
   },
   "DynamoDB": {
     "TableName": "<your-table-name>"
   },
   "S3": {
     "BucketName": "<your-bucket-name>"
+  },
+  "Serilog": {
+    "WriteTo": [
+      { "Name": "Seq", "Args": { "serverUrl": "<your-seq-url>" } }
+    ]
   }
 }
-```
-
----
-
-## Running locally
-
-```bash
-dotnet restore
-dotnet build
-dotnet run --project src/LoreForge.Api
 ```
 
 ---
@@ -111,3 +131,5 @@ dotnet run --project src/LoreForge.Api
 dotnet test tests/LoreForge.UnitTests
 dotnet test tests/LoreForge.IntegrationTests
 ```
+
+> Integration tests spin up a Postgres container automatically via Testcontainers — no manual setup required.
