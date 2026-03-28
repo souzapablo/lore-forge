@@ -23,6 +23,7 @@ builder.Services.AddSingleton<IAmazonBedrockRuntime>(_ => new AmazonBedrockRunti
 builder.Services.AddScoped<IEmbeddingService, BedrockEmbeddingService>();
 
 builder.Services.AddScoped<AddWorkHandler>();
+builder.Services.AddScoped<AddJournalEntryHandler>();
 
 builder.Services.AddOpenApi();
 
@@ -39,6 +40,7 @@ app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 
 AddWorkHandler.MapEndpoint(app);
+AddJournalEntryHandler.MapEndpoint(app);
 
 app.Run();
 
