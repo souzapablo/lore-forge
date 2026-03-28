@@ -1,3 +1,4 @@
+using LoreForge.Api.Extensions;
 using LoreForge.Core.Entities;
 using LoreForge.Core.Errors;
 using LoreForge.Core.Ports;
@@ -16,7 +17,7 @@ public record AddJournalEntryRequest(
     string? FileRef
 );
 
-public class AddJournalEntryHandler(LoreForgeDbContext db, IEmbeddingService embedding)
+public class AddJournalEntryHandler(LoreForgeDbContext db, IEmbeddingService embedding) : IEndpoint
 {
     public async Task<Result<Guid>> HandleAsync(AddJournalEntryRequest request, CancellationToken ct)
     {

@@ -1,5 +1,5 @@
 using Amazon.BedrockRuntime;
-using LoreForge.Api.Features.Logbook;
+using LoreForge.Api.Extensions;
 using LoreForge.Core.Ports;
 using LoreForge.Infrastructure.Bedrock;
 using LoreForge.Infrastructure.Persistence;
@@ -22,8 +22,7 @@ builder.Services.AddDbContext<LoreForgeDbContext>(options =>
 builder.Services.AddSingleton<IAmazonBedrockRuntime>(_ => new AmazonBedrockRuntimeClient());
 builder.Services.AddScoped<IEmbeddingService, BedrockEmbeddingService>();
 
-builder.Services.AddScoped<AddWorkHandler>();
-builder.Services.AddScoped<AddJournalEntryHandler>();
+builder.Services.AddEndpointHandlers(typeof(Program).Assembly);
 
 builder.Services.AddOpenApi();
 
@@ -39,8 +38,7 @@ app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
-AddWorkHandler.MapEndpoint(app);
-AddJournalEntryHandler.MapEndpoint(app);
+app.MapEndpoints(typeof(Program).Assembly);
 
 app.Run();
 

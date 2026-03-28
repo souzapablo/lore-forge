@@ -1,3 +1,4 @@
+using LoreForge.Api.Extensions;
 using LoreForge.Core.Entities;
 using LoreForge.Core.Ports;
 using LoreForge.Core.Primitives;
@@ -26,7 +27,7 @@ public record AddWorkNotesRequest(
     string? WhatILiked
 );
 
-public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding)
+public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding) : IEndpoint
 {
     public async Task<Result<Guid>> HandleAsync(AddWorkRequest request, CancellationToken ct)
     {
