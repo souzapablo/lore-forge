@@ -21,6 +21,9 @@ public class AddJournalEntryHandler(LoreForgeDbContext db, IEmbeddingService emb
 {
     public async Task<Result<Guid>> HandleAsync(AddJournalEntryRequest request, CancellationToken ct)
     {
+        if (Validate(request) is { } error)
+            return Result.Failure<Guid>(error);
+
         if (request.WorkId is not null)
         {
             var workExists = await db.Works.AnyAsync(w => w.Id == request.WorkId, ct);
@@ -54,8 +57,17 @@ public class AddJournalEntryHandler(LoreForgeDbContext db, IEmbeddingService emb
             CancellationToken ct) =>
         {
             var result = await handler.HandleAsync(request, ct);
-            return result.IsSuccess
-                ? Results.Ok(result.Value)
-                : Results.NotFound(result.Error);
+            return result.ToHttpResult(id => Results.Ok(id));
         });
+    
+    private static Error? Validate(AddJournalEntryRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.RawContent))
+            return JournalEntryErrors.ContentEmpty;
+
+        if (request.Source == JournalSource.File && string.IsNullOrWhiteSpace(request.FileRef))
+            return JournalEntryErrors.FileRefRequired;
+
+        return null;
+    }
 }

@@ -1,5 +1,6 @@
 using LoreForge.Api.Extensions;
 using LoreForge.Core.Entities;
+using LoreForge.Core.Errors;
 using LoreForge.Core.Ports;
 using LoreForge.Core.Primitives;
 using LoreForge.Infrastructure.Persistence;
@@ -31,6 +32,9 @@ public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding) 
 {
     public async Task<Result<Guid>> HandleAsync(AddWorkRequest request, CancellationToken ct)
     {
+        if (Validate(request) is { } error)
+            return Result.Failure<Guid>(error);
+
         var notes = new WorkNotes
         {
             Worldbuilding = request.Notes.Worldbuilding,
@@ -70,8 +74,32 @@ public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding) 
             CancellationToken ct) =>
         {
             var result = await handler.HandleAsync(request, ct);
-            return result.IsSuccess
-                ? Results.Ok(result.Value)
-                : Results.BadRequest(result.Error);
+            return result.ToHttpResult(id => Results.Ok(id));
         });
+
+    private static Error? Validate(AddWorkRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return WorkErrors.TitleEmpty;
+
+        var hasNotes = request.Notes is
+        {
+            Worldbuilding: not null
+        } or {
+            Magic: not null
+        } or {
+            Characters: not null
+        } or {
+            Themes: not null
+        } or {
+            PlotStructure: not null
+        } or {
+            WhatILiked: not null
+        };
+
+        if (!hasNotes)
+            return WorkErrors.NotesEmpty;
+
+        return null;
+    }
 }

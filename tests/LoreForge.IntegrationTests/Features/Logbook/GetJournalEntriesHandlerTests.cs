@@ -118,7 +118,7 @@ public class GetJournalEntriesHandlerTests(IntegrationTestWebAppFactory factory)
             Genres = Array.Empty<string>(),
             Status = WorkStatus.InProgress,
             Progress = (object?)null,
-            Notes = new { Worldbuilding = (string?)null, Magic = (string?)null, Characters = (string?)null, Themes = (string?)null, PlotStructure = (string?)null, WhatILiked = (string?)null },
+            Notes = new { Worldbuilding = "Some world", Magic = (string?)null, Characters = (string?)null, Themes = (string?)null, PlotStructure = (string?)null, WhatILiked = (string?)null },
             Tags = Array.Empty<string>()
         });
 

@@ -81,6 +81,26 @@ public class AddWorkHandlerTests(IntegrationTestWebAppFactory factory)
         string Title, WorkType Type, string[] Genres, WorkStatus Status,
         object? Progress, NotesRequest Notes, string[] Tags);
 
+    [Fact(DisplayName = "Returns 422 when Title is empty")]
+    public async Task Should_Return422_When_TitleIsEmpty()
+    {
+        var request = MinimalRequest() with { Title = "" };
+
+        var response = await Client.PostAsJsonAsync("/logbook/works", request);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Returns 422 when all Notes fields are null")]
+    public async Task Should_Return422_When_AllNotesAreNull()
+    {
+        var request = MinimalRequest() with { Notes = new(null, null, null, null, null, null) };
+
+        var response = await Client.PostAsJsonAsync("/logbook/works", request);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
+
     private static WorkRequest MinimalRequest(string title = "Test Work") =>
         new(
             Title: title,
@@ -88,6 +108,6 @@ public class AddWorkHandlerTests(IntegrationTestWebAppFactory factory)
             Genres: [],
             Status: WorkStatus.InProgress,
             Progress: null,
-            Notes: new(null, null, null, null, null, null),
+            Notes: new(Worldbuilding: "Some world", null, null, null, null, null),
             Tags: []);
 }

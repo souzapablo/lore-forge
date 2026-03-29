@@ -94,6 +94,26 @@ public class AddJournalEntryHandlerTests(IntegrationTestWebAppFactory factory)
             RawContent: "Test journal entry content.",
             FileRef: null);
 
+    [Fact(DisplayName = "Returns 422 when RawContent is empty")]
+    public async Task Should_Return422_When_RawContentIsEmpty()
+    {
+        var request = MinimalRequest() with { RawContent = "" };
+
+        var response = await Client.PostAsJsonAsync("/logbook/journal-entries", request);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Returns 422 when Source is file but FileRef is missing")]
+    public async Task Should_Return422_When_SourceIsFileAndFileRefIsMissing()
+    {
+        var request = MinimalRequest() with { Source = JournalSource.File, FileRef = null };
+
+        var response = await Client.PostAsJsonAsync("/logbook/journal-entries", request);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
+
     private static object MinimalWorkRequest() => new
     {
         Title = "Test Work",
@@ -101,7 +121,7 @@ public class AddJournalEntryHandlerTests(IntegrationTestWebAppFactory factory)
         Genres = Array.Empty<string>(),
         Status = 0,
         Progress = (object?)null,
-        Notes = new { Worldbuilding = (string?)null, Magic = (string?)null, Characters = (string?)null, Themes = (string?)null, PlotStructure = (string?)null, WhatILiked = (string?)null },
+        Notes = new { Worldbuilding = "Some world", Magic = (string?)null, Characters = (string?)null, Themes = (string?)null, PlotStructure = (string?)null, WhatILiked = (string?)null },
         Tags = Array.Empty<string>()
     };
 }

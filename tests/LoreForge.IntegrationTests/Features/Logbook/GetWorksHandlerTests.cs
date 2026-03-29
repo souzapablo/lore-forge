@@ -45,7 +45,7 @@ public class GetWorksHandlerTests(IntegrationTestWebAppFactory factory)
             Genres = new[] { "rpg" },
             Status = WorkStatus.Completed,
             Progress = (object?)null,
-            Notes = new { Worldbuilding = (string?)null, Magic = (string?)null, Characters = (string?)null, Themes = (string?)null, PlotStructure = (string?)null, WhatILiked = (string?)null },
+            Notes = new { Worldbuilding = "Some world", Magic = (string?)null, Characters = (string?)null, Themes = (string?)null, PlotStructure = (string?)null, WhatILiked = (string?)null },
             Tags = new[] { "fromsoft" }
         };
 
@@ -199,7 +199,7 @@ public class GetWorksHandlerTests(IntegrationTestWebAppFactory factory)
         Genres = genres ?? Array.Empty<string>(),
         Status = status,
         Progress = (object?)null,
-        Notes = new { Worldbuilding = (string?)null, Magic = (string?)null, Characters = (string?)null, Themes = (string?)null, PlotStructure = (string?)null, WhatILiked = (string?)null },
+        Notes = new { Worldbuilding = "Some world", Magic = (string?)null, Characters = (string?)null, Themes = (string?)null, PlotStructure = (string?)null, WhatILiked = (string?)null },
         Tags = tags ?? Array.Empty<string>()
     };
 }
