@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\src\LoreForge.Api\LoreForge.Api.csproj" />
     <ProjectReference Include="..\..\src\LoreForge.Core\LoreForge.Core.csproj" />
     <ProjectReference Include="..\..\src\LoreForge.Infrastructure\LoreForge.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\LoreForge.Contracts\LoreForge.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

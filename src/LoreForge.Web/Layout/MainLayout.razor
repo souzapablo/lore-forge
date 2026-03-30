@@ -1,0 +1,63 @@
+@inherits LayoutComponentBase
+
+<div class="shell">
+    <header class="topbar">
+        <a href="/works" class="logo">
+            <div class="logo-mark">L</div>
+            <span class="logo-text">Lore Forge</span>
+        </a>
+        <div class="topbar-sep"></div>
+        <span class="topbar-context">@_pageTitle</span>
+        <div class="topbar-right">
+            <div class="avatar">P</div>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <div class="nav-group">
+            <div class="nav-group-label">A Forja</div>
+            <NavLink class="nav-item" href="/agent" Match="NavLinkMatch.All">
+                <span class="nav-icon">✦</span> Agente
+            </NavLink>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-group-label">Diário</div>
+            <NavLink class="nav-item" href="/works">
+                <span class="nav-icon">◈</span> Obras
+            </NavLink>
+            <NavLink class="nav-item" href="/journal">
+                <span class="nav-icon">✎</span> Anotações
+            </NavLink>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-group-label">História</div>
+            <NavLink class="nav-item" href="/world-notes">
+                <span class="nav-icon">◉</span> Notas do Mundo
+            </NavLink>
+        </div>
+
+        <div class="sidebar-footer">
+            <a class="nav-item" href="/settings">
+                <span class="nav-icon">⚙</span> Configurações
+            </a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <CascadingValue Value="this">
+            @Body
+        </CascadingValue>
+    </main>
+</div>
+
+@code {
+    private string _pageTitle = string.Empty;
+
+    public void SetPageTitle(string title)
+    {
+        _pageTitle = title;
+        StateHasChanged();
+    }
+}

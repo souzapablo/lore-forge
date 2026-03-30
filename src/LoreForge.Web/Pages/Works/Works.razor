@@ -1,0 +1,87 @@
+@page "/works"
+
+<PageTitle>Obras — Lore Forge</PageTitle>
+
+<div class="page-header">
+    <div class="page-header-text">
+        <h1>Obras</h1>
+        <p>Jogos, livros, filmes e séries do seu diário</p>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn btn-gold" @onclick="OpenAddWork">+ Adicionar obra</button>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <span class="filter-label">Tipo</span>
+    @foreach (var type in Enum.GetValues<WorkType>())
+    {
+        <button class="btn btn-ghost @(SelectedTypes.Contains(type) ? "active" : "")"
+                @onclick="() => ToggleType(type)">
+            @TypeLabel(type)
+        </button>
+    }
+    <div style="width: 1px; height: 18px; background: var(--border-bright); margin: 0 4px;"></div>
+    <span class="filter-label">Status</span>
+    @foreach (var status in Enum.GetValues<WorkStatus>())
+    {
+        <button class="btn btn-ghost @(SelectedStatuses.Contains(status) ? "active" : "")"
+                @onclick="() => ToggleStatus(status)">
+            @StatusLabel(status)
+        </button>
+    }
+</div>
+
+@if (_loading)
+{
+    <div class="loading-state">
+        <span class="loading-spinner">◌</span> Carregando seu diário…
+    </div>
+}
+else if (_result is null || _result.Items.Count == 0)
+{
+    <div class="empty-state">
+        <div class="empty-state-sigil">◈</div>
+        <div class="empty-state-title">Seu diário está vazio</div>
+        <div class="empty-state-sub">Adicione a primeira obra para começar sua biblioteca de inspiração.</div>
+    </div>
+}
+else
+{
+    <div class="page-content">
+        <div class="works-grid">
+            @foreach (var work in _result.Items)
+            {
+                <div class="work-card">
+                    <div class="work-card-header">
+                        <div class="work-type-dot @DotClass(work.Type)"></div>
+                        <span class="work-card-title">@work.Title</span>
+                    </div>
+                    <div class="work-card-meta">
+                        <span class="work-type-label">@TypeLabel(work.Type)</span>
+                        <span class="work-status @StatusClass(work.Status)">@StatusLabel(work.Status)</span>
+                    </div>
+                    @if (work.Tags.Length > 0)
+                    {
+                        <div class="work-tags">
+                            @foreach (var tag in work.Tags)
+                            {
+                                <span class="tag">@tag</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="pagination-bar">
+        <span class="pagination-info">
+            @((_currentPage - 1) * PageSize + 1)–@Math.Min(_currentPage * PageSize, _result.TotalCount) de @_result.TotalCount obras
+        </span>
+        <div class="pagination-controls">
+            <button class="btn btn-ghost" disabled="@(!_result.HasPreviousPage)" @onclick="PreviousPage">← Anterior</button>
+            <button class="btn btn-ghost" disabled="@(!_result.HasNextPage)" @onclick="NextPage">Próxima →</button>
+        </div>
+    </div>
+}

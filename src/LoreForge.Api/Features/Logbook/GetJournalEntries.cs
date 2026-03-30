@@ -1,21 +1,11 @@
 using LoreForge.Api.Extensions;
+using LoreForge.Contracts.Logbook;
 using LoreForge.Core.Entities;
 using LoreForge.Core.Filtering;
 using LoreForge.Core.Primitives;
 using LoreForge.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-namespace LoreForge.Api.Features.Logbook;
-
-public record JournalEntrySummary(
-    Guid Id,
-    Guid? WorkId,
-    string? ProgressSnapshot,
-    JournalSource Source,
-    string RawContent,
-    DateTime CreatedAt
-);
 
 public class GetJournalEntriesHandler(LoreForgeDbContext db) : IEndpoint
 {

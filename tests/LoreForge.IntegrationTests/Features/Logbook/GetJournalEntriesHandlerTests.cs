@@ -1,6 +1,6 @@
-using LoreForge.Api.Features.Logbook;
+using LoreForge.Contracts.Common;
+using LoreForge.Contracts.Logbook;
 using LoreForge.Core.Entities;
-using LoreForge.Core.Primitives;
 using System.Net;
 using System.Net.Http.Json;
 

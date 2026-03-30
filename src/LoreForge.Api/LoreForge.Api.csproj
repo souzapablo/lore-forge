@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\LoreForge.Core\LoreForge.Core.csproj" />
     <ProjectReference Include="..\LoreForge.Infrastructure\LoreForge.Infrastructure.csproj" />
+    <ProjectReference Include="..\LoreForge.Contracts\LoreForge.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

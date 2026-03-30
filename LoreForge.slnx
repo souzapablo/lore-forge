@@ -1,8 +1,10 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/LoreForge.Api/LoreForge.Api.csproj" />
+    <Project Path="src/LoreForge.Contracts/LoreForge.Contracts.csproj" />
     <Project Path="src/LoreForge.Core/LoreForge.Core.csproj" />
     <Project Path="src/LoreForge.Infrastructure/LoreForge.Infrastructure.csproj" />
+    <Project Path="src/LoreForge.Web/LoreForge.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/LoreForge.IntegrationTests/LoreForge.IntegrationTests.csproj" />

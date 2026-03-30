@@ -1,4 +1,5 @@
 using LoreForge.Api.Extensions;
+using LoreForge.Contracts.Logbook;
 using LoreForge.Core.Entities;
 using LoreForge.Core.Filtering;
 using LoreForge.Core.Primitives;
@@ -7,16 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LoreForge.Api.Features.Logbook;
-
-public record WorkSummary(
-    Guid Id,
-    string Title,
-    WorkType Type,
-    string[] Genres,
-    WorkStatus Status,
-    string[] Tags,
-    DateTime CreatedAt
-);
 
 public class GetWorksHandler(LoreForgeDbContext db) : IEndpoint
 {

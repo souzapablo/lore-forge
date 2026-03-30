@@ -26,16 +26,24 @@ builder.Services.AddEndpointHandlers(typeof(Program).Assembly);
 
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+    options.AddPolicy("Frontend", policy => policy
+        .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
+        .AllowAnyMethod()
+        .AllowAnyHeader()));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+    await DevDataSeeder.SeedAsync(app.Services);
 }
 
 app.UseSerilogRequestLogging();
 
+app.UseCors("Frontend");
 app.UseHttpsRedirection();
 
 app.MapEndpoints(typeof(Program).Assembly);
