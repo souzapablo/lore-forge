@@ -38,7 +38,6 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
-    await DevDataSeeder.SeedAsync(app.Services);
 }
 
 app.UseSerilogRequestLogging();

@@ -29,7 +29,8 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 services.Remove(dbDescriptor);
 
             services.AddDbContext<LoreForgeDbContext>(options =>
-                options.UseNpgsql(_container.GetConnectionString(), o => o.UseVector()));
+                options.UseNpgsql(_container.GetConnectionString(), o => o.UseVector())
+                       .UseSnakeCaseNamingConvention());
 
             var embeddingDescriptor = services.SingleOrDefault(d =>
                 d.ServiceType == typeof(IEmbeddingService));
