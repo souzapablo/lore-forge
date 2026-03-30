@@ -1,6 +1,6 @@
 # Lore Forge
 
-Personal writing assistant API. Helps with creative writing ideas by learning from your personal logbook of games, books, movies, and shows.
+Personal writing assistant. Helps with creative writing ideas by learning from your personal logbook of games, books, movies, and shows.
 
 > Lore Forge does **not** write your story — it helps you think through it.
 
@@ -16,8 +16,8 @@ You feed it your personal reactions and notes about works you've experienced. It
 
 | Concern | Choice |
 |---|---|
-| Framework | .NET Minimal API |
-| Architecture | Vertical Slice (no MediatR) |
+| API | .NET Minimal API, Vertical Slice (no MediatR) |
+| Frontend | Blazor WASM |
 | AI | AWS Bedrock — Nova Micro + Titan Embeddings v2 |
 | Vector store | pgvector on Postgres |
 | Conversation store | DynamoDB |
@@ -43,10 +43,19 @@ LoreForge.sln
 │   │   ├── Filtering/           # WorkFilter, PaginationParams
 │   │   ├── Ports/               # IEmbeddingService, IAgentService, IEndpoint, etc.
 │   │   └── Primitives/          # Result<T>, Error, PagedResult<T>
-│   └── LoreForge.Infrastructure # AWS Bedrock, pgvector, DynamoDB integrations
-│       ├── Bedrock/
-│       │   └── AgentTools/
-│       └── Persistence/         # DbContext, migrations, QueryableExtensions
+│   ├── LoreForge.Contracts      # Shared request/response DTOs (referenced by Api + Web)
+│   │   ├── Common/              # PagedResult
+│   │   └── Logbook/             # WorkSummary, JournalEntrySummary
+│   ├── LoreForge.Infrastructure # AWS Bedrock, pgvector, DynamoDB integrations
+│   │   ├── Bedrock/
+│   │   │   └── AgentTools/
+│   │   └── Persistence/         # DbContext, migrations, QueryableExtensions
+│   └── LoreForge.Web            # Blazor WASM frontend
+│       ├── Layout/              # MainLayout
+│       ├── Pages/
+│       │   ├── Works/           # Works.razor + Works.razor.cs + Works.razor.css
+│       │   └── ...
+│       └── Shared/
 └── tests/
     ├── LoreForge.UnitTests
     └── LoreForge.IntegrationTests
@@ -90,8 +99,13 @@ docker compose up -d
 Run the API:
 
 ```bash
-dotnet restore
 dotnet run --project src/LoreForge.Api
+```
+
+Run the frontend:
+
+```bash
+dotnet run --project src/LoreForge.Web
 ```
 
 Seq UI is available at `http://localhost:5342`.
@@ -100,10 +114,15 @@ Seq UI is available at `http://localhost:5342`.
 
 ## Configuration
 
+### API (`src/LoreForge.Api/appsettings.json`)
+
 ```json
 {
   "ConnectionStrings": {
     "Postgres": "<your-postgres-connection-string>"
+  },
+  "Cors": {
+    "AllowedOrigins": [ "https://your-frontend-url" ]
   },
   "Bedrock": {
     "AgentModelId": "amazon.nova-micro-v1:0",
@@ -123,13 +142,26 @@ Seq UI is available at `http://localhost:5342`.
 }
 ```
 
+Development CORS origins are already set in `appsettings.Development.json`. In production, override via environment variable:
+
+```
+Cors__AllowedOrigins__0=https://your-frontend-url
+```
+
+### Frontend (`src/LoreForge.Web/wwwroot/appsettings.json`)
+
+```json
+{
+  "ApiBaseUrl": "https://your-api-url"
+}
+```
+
 ---
 
 ## Running tests
 
 ```bash
-dotnet test tests/LoreForge.UnitTests
-dotnet test tests/LoreForge.IntegrationTests
+dotnet test
 ```
 
 > Integration tests spin up a Postgres container automatically via Testcontainers — no manual setup required.
