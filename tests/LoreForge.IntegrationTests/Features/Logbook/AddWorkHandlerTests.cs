@@ -10,14 +10,15 @@ namespace LoreForge.IntegrationTests.Features.Logbook;
 public class AddWorkHandlerTests(IntegrationTestWebAppFactory factory)
     : BaseIntegrationTest(factory)
 {
-    [Fact(DisplayName = "Returns 200 OK with the new work's ID when a work is added")]
-    public async Task Should_Return200WithId_When_WorkIsAdded()
+    [Fact(DisplayName = "Returns 201 Created with location header when a work is added")]
+    public async Task Should_Return201WithLocation_When_WorkIsAdded()
     {
         var response = await Client.PostAsJsonAsync("/logbook/works", MinimalRequest());
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var id = await response.Content.ReadFromJsonAsync<Guid>();
         Assert.NotEqual(Guid.Empty, id);
+        Assert.Equal($"/logbook/works/{id}", response.Headers.Location?.OriginalString);
     }
 
     [Fact(DisplayName = "Persists all work properties to the database when a work is added")]

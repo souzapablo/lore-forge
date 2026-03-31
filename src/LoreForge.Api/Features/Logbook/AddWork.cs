@@ -74,7 +74,7 @@ public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding) 
             CancellationToken ct) =>
         {
             var result = await handler.HandleAsync(request, ct);
-            return result.ToHttpResult(id => Results.Ok(id));
+            return result.ToHttpResult(id => Results.Created($"/logbook/works/{id}", id));
         });
 
     private static Error? Validate(AddWorkRequest request)

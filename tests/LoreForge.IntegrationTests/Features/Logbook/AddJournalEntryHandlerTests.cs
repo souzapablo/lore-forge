@@ -9,14 +9,15 @@ namespace LoreForge.IntegrationTests.Features.Logbook;
 public class AddJournalEntryHandlerTests(IntegrationTestWebAppFactory factory)
     : BaseIntegrationTest(factory)
 {
-    [Fact(DisplayName = "Returns 200 OK with the new entry's ID when a journal entry is added")]
-    public async Task Should_Return200WithId_When_JournalEntryIsAdded()
+    [Fact(DisplayName = "Returns 201 Created with location header when a journal entry is added")]
+    public async Task Should_Return201WithLocation_When_JournalEntryIsAdded()
     {
         var response = await Client.PostAsJsonAsync("/logbook/journal-entries", MinimalRequest());
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var id = await response.Content.ReadFromJsonAsync<Guid>();
         Assert.NotEqual(Guid.Empty, id);
+        Assert.Equal($"/logbook/journal-entries/{id}", response.Headers.Location?.OriginalString);
     }
 
     [Fact(DisplayName = "Persists all journal entry properties to the database when an entry is added")]

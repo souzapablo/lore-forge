@@ -57,7 +57,7 @@ public class AddJournalEntryHandler(LoreForgeDbContext db, IEmbeddingService emb
             CancellationToken ct) =>
         {
             var result = await handler.HandleAsync(request, ct);
-            return result.ToHttpResult(id => Results.Ok(id));
+            return result.ToHttpResult(id => Results.Created($"/logbook/journal-entries/{id}", id));
         });
     
     private static Error? Validate(AddJournalEntryRequest request)
