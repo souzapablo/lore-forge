@@ -19,8 +19,17 @@ public partial class WorkDetail
     private WorkDetailDto? _work;
     private bool _loading = true;
     private bool _notFound;
+    private bool _editing;
+    private bool _saving;
+    private string? _errorMessage;
+    private EditForm _form = new();
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
     {
         var response = await Http.GetAsync($"logbook/works/{Id}");
 
@@ -36,6 +45,80 @@ public partial class WorkDetail
 
         _loading = false;
     }
+
+    private void StartEdit()
+    {
+        if (_work is null) return;
+
+        _form = new EditForm
+        {
+            Title = _work.Title,
+            Status = _work.Status,
+            Genres = string.Join(", ", _work.Genres),
+            Tags = string.Join(", ", _work.Tags),
+            Worldbuilding = _work.Notes.Worldbuilding,
+            Magic = _work.Notes.Magic,
+            Characters = _work.Notes.Characters,
+            Themes = _work.Notes.Themes,
+            PlotStructure = _work.Notes.PlotStructure,
+            WhatILiked = _work.Notes.WhatILiked
+        };
+
+        _errorMessage = null;
+        _editing = true;
+    }
+
+    private void CancelEdit()
+    {
+        _editing = false;
+        _errorMessage = null;
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _errorMessage = null;
+
+        var request = new
+        {
+            Title = _form.Title,
+            Genres = SplitCsv(_form.Genres),
+            Status = _form.Status,
+            Progress = (object?)null,
+            Notes = new
+            {
+                Worldbuilding = NullIfEmpty(_form.Worldbuilding),
+                Magic = NullIfEmpty(_form.Magic),
+                Characters = NullIfEmpty(_form.Characters),
+                Themes = NullIfEmpty(_form.Themes),
+                PlotStructure = NullIfEmpty(_form.PlotStructure),
+                WhatILiked = NullIfEmpty(_form.WhatILiked)
+            },
+            Tags = SplitCsv(_form.Tags)
+        };
+
+        var response = await Http.PutAsJsonAsync($"logbook/works/{Id}", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _editing = false;
+            await LoadAsync();
+        }
+        else
+        {
+            _errorMessage = "Não foi possível salvar as alterações. Verifique os campos e tente novamente.";
+        }
+
+        _saving = false;
+    }
+
+    private static string[] SplitCsv(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? []
+            : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private static string? NullIfEmpty(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
 
     private static string DotClass(WorkType type) => type switch
     {
@@ -71,4 +154,18 @@ public partial class WorkDetail
         WorkStatus.Dropped    => "Abandonado",
         _                     => status.ToString()
     };
+
+    private class EditForm
+    {
+        public string Title { get; set; } = "";
+        public WorkStatus Status { get; set; }
+        public string Genres { get; set; } = "";
+        public string Tags { get; set; } = "";
+        public string? Worldbuilding { get; set; }
+        public string? Magic { get; set; }
+        public string? Characters { get; set; }
+        public string? Themes { get; set; }
+        public string? PlotStructure { get; set; }
+        public string? WhatILiked { get; set; }
+    }
 }
