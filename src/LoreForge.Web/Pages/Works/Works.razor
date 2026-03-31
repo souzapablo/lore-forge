@@ -52,7 +52,7 @@ else
         <div class="works-grid">
             @foreach (var work in _result.Items)
             {
-                <div class="work-card">
+                <div class="work-card" @onclick="() => OpenWork(work.Id)">
                     <div class="work-card-header">
                         <div class="work-type-dot @DotClass(work.Type)"></div>
                         <span class="work-card-title">@work.Title</span>

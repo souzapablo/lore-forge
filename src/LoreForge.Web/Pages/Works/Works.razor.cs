@@ -84,6 +84,8 @@ public partial class Works
 
     private void OpenAddWork() => Nav.NavigateTo("/works/add");
 
+    private void OpenWork(Guid id) => Nav.NavigateTo($"/works/{id}");
+
     private static string DotClass(WorkType type) => type switch
     {
         WorkType.Game   => "dot-game",
