@@ -185,6 +185,85 @@ else if (_work is not null)
                     </div>
                 }
             </div>
+
+            <div class="entries-section">
+                <div class="entries-section-header">
+                    <span>Anotações@(_entries.Count > 0 ? $" ({_entries.Count})" : "")</span>
+                    <button class="btn btn-ghost btn-sm" @onclick="OpenEntryModal">+ Nova anotação</button>
+                </div>
+                @if (_entriesLoading)
+                {
+                    <div class="entries-empty">Carregando…</div>
+                }
+                else if (_entries.Count == 0)
+                {
+                    <div class="entries-empty">Nenhuma anotação ainda.</div>
+                }
+                else
+                {
+                    <div class="journal-list">
+                        @foreach (var entry in _entries)
+                        {
+                            <div class="journal-card">
+                                <div class="journal-card-header">
+                                    <div class="journal-card-meta">
+                                        <span class="@SourceClass(entry.Source)">@SourceLabel(entry.Source)</span>
+                                        @if (!string.IsNullOrEmpty(entry.ProgressSnapshot))
+                                        {
+                                            <span class="journal-card-progress">@entry.ProgressSnapshot</span>
+                                        }
+                                    </div>
+                                    <span class="journal-card-date">@FormatDate(entry.CreatedAt)</span>
+                                </div>
+                                <div class="journal-card-content">@Truncate(entry.RawContent, 300)</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            @if (_showEntryModal)
+            {
+                <div class="modal-overlay" @onclick="CloseEntryModal">
+                    <div class="modal" @onclick:stopPropagation>
+                        <div class="modal-header">
+                            <span class="modal-title">Nova anotação — @_work.Title</span>
+                            <button class="modal-close" @onclick="CloseEntryModal">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            @if (!string.IsNullOrEmpty(_entryErrorMessage))
+                            {
+                                <div class="field-error-banner">@_entryErrorMessage</div>
+                            }
+                            <div class="field-group">
+                                <label class="field-label">Origem</label>
+                                <select class="field-select" @bind="_entryForm.Source">
+                                    @foreach (var source in Enum.GetValues<JournalSource>())
+                                    {
+                                        <option value="@source">@SourceLabel(source)</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Progresso <span class="field-hint">(opcional)</span></label>
+                                <input class="field-input" @bind="_entryForm.ProgressSnapshot" placeholder="Ex: capítulo 12, 40h de jogo…" />
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Conteúdo</label>
+                                <textarea class="@EntryContentClass" @bind="_entryForm.RawContent"
+                                          placeholder="Escreva suas impressões, reflexões ou anotações…"
+                                          style="min-height: 140px;"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-ghost" @onclick="CloseEntryModal">Cancelar</button>
+                            <button class="btn btn-gold" @onclick="SaveEntryAsync" disabled="@_entrySaving">
+                                @(_entrySaving ? "Salvando…" : "Adicionar")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
         }
     </div>
 }

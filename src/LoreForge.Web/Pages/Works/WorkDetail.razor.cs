@@ -1,4 +1,6 @@
+using LoreForge.Contracts.Logbook;
 using LoreForge.Core.Entities;
+using LoreForge.Core.Primitives;
 using LoreForge.Web.Layout;
 using Microsoft.AspNetCore.Components;
 using System.Net;
@@ -17,7 +19,9 @@ public partial class WorkDetail
     [CascadingParameter] private MainLayout? Layout { get; set; }
 
     private WorkDetailDto? _work;
+    private List<JournalEntrySummary> _entries = [];
     private bool _loading = true;
+    private bool _entriesLoading = true;
     private bool _notFound;
     private bool _editing;
     private bool _saving;
@@ -28,6 +32,7 @@ public partial class WorkDetail
     protected override async Task OnInitializedAsync()
     {
         await LoadAsync();
+        _ = LoadEntriesAsync();
     }
 
     private async Task LoadAsync()
@@ -45,6 +50,15 @@ public partial class WorkDetail
         }
 
         _loading = false;
+    }
+
+    private async Task LoadEntriesAsync()
+    {
+        _entriesLoading = true;
+        var result = await Http.GetFromJsonAsync<PagedResult<JournalEntrySummary>>($"logbook/journal-entries?workId={Id}&pageSize=50");
+        _entries = result?.Items ?? [];
+        _entriesLoading = false;
+        StateHasChanged();
     }
 
     private void StartEdit()
@@ -204,6 +218,86 @@ public partial class WorkDetail
         _                     => status.ToString()
     };
 
+    private static string SourceLabel(JournalSource source) => source switch
+    {
+        JournalSource.Chat      => "Chat",
+        JournalSource.PlainText => "Texto",
+        JournalSource.File      => "Arquivo",
+        _                       => source.ToString()
+    };
+
+    private static string SourceClass(JournalSource source) => source switch
+    {
+        JournalSource.Chat      => "source-badge source-chat",
+        JournalSource.File      => "source-badge source-file",
+        _                       => "source-badge source-plaintext"
+    };
+
+    private static string FormatDate(DateTime date) =>
+        date.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("pt-BR"));
+
+    private static string Truncate(string text, int max) =>
+        text.Length <= max ? text : text[..max] + "…";
+
+    // ── Add journal entry modal ──
+
+    private bool _showEntryModal;
+    private bool _entrySaving;
+    private string? _entryErrorMessage;
+    private EntryForm _entryForm = new();
+
+    private string EntryContentClass =>
+        _entryErrorMessage is not null && string.IsNullOrWhiteSpace(_entryForm.RawContent)
+            ? "field-textarea field-invalid"
+            : "field-textarea";
+
+    private void OpenEntryModal()
+    {
+        _entryForm = new EntryForm();
+        _entryErrorMessage = null;
+        _showEntryModal = true;
+    }
+
+    private void CloseEntryModal()
+    {
+        _showEntryModal = false;
+        _entryErrorMessage = null;
+    }
+
+    private async Task SaveEntryAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_entryForm.RawContent))
+        {
+            _entryErrorMessage = "O conteúdo é obrigatório.";
+            return;
+        }
+
+        _entrySaving = true;
+
+        var request = new
+        {
+            WorkId = Id,
+            ProgressSnapshot = NullIfEmpty(_entryForm.ProgressSnapshot),
+            _entryForm.Source,
+            _entryForm.RawContent,
+            FileRef = (string?)null
+        };
+
+        var response = await Http.PostAsJsonAsync("logbook/journal-entries", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _showEntryModal = false;
+            await LoadEntriesAsync();
+        }
+        else
+        {
+            _entryErrorMessage = "Não foi possível adicionar a anotação. Tente novamente.";
+        }
+
+        _entrySaving = false;
+    }
+
     private class EditForm
     {
         public string Title { get; set; } = "";
@@ -216,5 +310,12 @@ public partial class WorkDetail
         public string? Themes { get; set; }
         public string? PlotStructure { get; set; }
         public string? WhatILiked { get; set; }
+    }
+
+    private class EntryForm
+    {
+        public JournalSource Source { get; set; } = JournalSource.PlainText;
+        public string? ProgressSnapshot { get; set; }
+        public string RawContent { get; set; } = "";
     }
 }
