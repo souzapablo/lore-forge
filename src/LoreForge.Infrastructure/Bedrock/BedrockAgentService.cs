@@ -32,6 +32,13 @@ public class BedrockAgentService(
     {
         var history = await conversations.GetHistoryAsync(conversationId, ct);
 
+        if (history.Count == 0)
+        {
+            var summary = userMessage.Length <= 100 ? userMessage : userMessage[..100];
+            var createdAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            await conversations.SaveConversationMetaAsync(conversationId, summary, createdAt, ct);
+        }
+
         var messages = history.Select(ToBedrockMessage).ToList();
         messages.Add(new Message
         {

@@ -8,68 +8,94 @@
         <h1>Agente</h1>
         <p>Converse com o Lore Forge sobre sua história</p>
     </div>
-    @if (_conversationId is not null)
-    {
-        <div class="page-header-actions">
-            <button class="btn btn-ghost" @onclick="ClearAsync">Limpar conversa</button>
-        </div>
-    }
 </div>
 
-<div class="chat-body">
-    @if (_messages.Count == 0 && !_sending)
-    {
-        <div class="empty-state">
-            <div class="empty-state-sigil">✦</div>
-            <div class="empty-state-title">Pronto para ajudar</div>
-            <div class="empty-state-sub">Faça uma pergunta sobre sua história, personagens ou worldbuilding.</div>
+<div class="agent-layout">
+
+    <div class="conv-sidebar">
+        <div class="conv-sidebar-top">
+            <button class="btn btn-gold conv-new-btn" @onclick="NewConversation">+ Nova conversa</button>
         </div>
-    }
-    else
-    {
-        <div class="chat-messages">
-            @foreach (var msg in _messages)
-            {
-                <div class="chat-message chat-message-@msg.Role">
-                    @if (msg.Role == "assistant")
-                    {
-                        <div class="chat-bubble chat-bubble-md">@RenderMarkdown(msg.Content)</div>
-                    }
-                    else
-                    {
-                        <div class="chat-bubble">@msg.Content</div>
-                    }
-                </div>
-            }
-            @if (_sending)
-            {
-                <div class="chat-message chat-message-assistant">
-                    <div class="chat-bubble chat-bubble-thinking">
-                        <span class="loading-spinner">◌</span>
+
+        @if (_conversations.Count == 0)
+        {
+            <div class="conv-empty">Nenhuma conversa ainda.</div>
+        }
+        else
+        {
+            <div class="conv-list">
+                @foreach (var conv in _conversations)
+                {
+                    <div class="conv-item @(conv.ConversationId == _conversationId ? "conv-item-active" : "")"
+                         @onclick="() => SelectConversationAsync(conv.ConversationId)">
+                        <span class="conv-item-summary">@conv.Summary</span>
+                        <button class="conv-delete-btn" @onclick:stopPropagation
+                                @onclick="() => DeleteConversationAsync(conv.ConversationId)">✕</button>
                     </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="chat-area">
+        <div class="chat-body">
+            @if (_messages.Count == 0 && !_sending)
+            {
+                <div class="empty-state">
+                    <div class="empty-state-sigil">✦</div>
+                    <div class="empty-state-title">Pronto para ajudar</div>
+                    <div class="empty-state-sub">Faça uma pergunta sobre sua história, personagens ou worldbuilding.</div>
                 </div>
             }
-            <div @ref="_messagesEnd"></div>
+            else
+            {
+                <div class="chat-messages">
+                    @foreach (var msg in _messages)
+                    {
+                        <div class="chat-message chat-message-@msg.Role">
+                            @if (msg.Role == "assistant")
+                            {
+                                <div class="chat-bubble chat-bubble-md">@RenderMarkdown(msg.Content)</div>
+                            }
+                            else
+                            {
+                                <div class="chat-bubble">@msg.Content</div>
+                            }
+                        </div>
+                    }
+                    @if (_sending)
+                    {
+                        <div class="chat-message chat-message-assistant">
+                            <div class="chat-bubble chat-bubble-thinking">
+                                <span class="loading-spinner">◌</span>
+                            </div>
+                        </div>
+                    }
+                    <div @ref="_messagesEnd"></div>
+                </div>
+            }
         </div>
-    }
-</div>
 
-<div class="chat-input-bar">
-    @if (_errorMessage is not null)
-    {
-        <div class="field-error-banner chat-error">@_errorMessage</div>
-    }
-    <div class="chat-input-row">
-        <textarea class="field-textarea chat-textarea"
-                  @ref="_textareaRef"
-                  @bind="_input"
-                  @bind:event="oninput"
-                  @onkeydown="OnKeyDown"
-                  placeholder="Escreva sua mensagem… (Enter para enviar, Shift+Enter para nova linha)"
-                  disabled="@_sending"
-                  rows="2"></textarea>
-        <button class="btn btn-gold chat-send-btn" @onclick="SendAsync" disabled="@(_sending || string.IsNullOrWhiteSpace(_input))">
-            Enviar
-        </button>
+        <div class="chat-input-bar">
+            @if (_errorMessage is not null)
+            {
+                <div class="field-error-banner chat-error">@_errorMessage</div>
+            }
+            <div class="chat-input-row">
+                <textarea class="field-textarea chat-textarea"
+                          @ref="_textareaRef"
+                          @bind="_input"
+                          @bind:event="oninput"
+                          @onkeydown="OnKeyDown"
+                          placeholder="Escreva sua mensagem… (Enter para enviar, Shift+Enter para nova linha)"
+                          disabled="@_sending"
+                          rows="2"></textarea>
+                <button class="btn btn-gold chat-send-btn" @onclick="SendAsync"
+                        disabled="@(_sending || string.IsNullOrWhiteSpace(_input))">
+                    Enviar
+                </button>
+            </div>
+        </div>
     </div>
+
 </div>

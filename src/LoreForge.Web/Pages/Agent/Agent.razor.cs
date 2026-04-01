@@ -15,6 +15,7 @@ public partial class Agent
 
     [CascadingParameter] private MainLayout? Layout { get; set; }
 
+    private List<ConversationSummaryDto> _conversations = [];
     private string? _conversationId;
     private readonly List<ChatMessage> _messages = [];
     private string _input = "";
@@ -24,9 +25,10 @@ public partial class Agent
     private ElementReference _messagesEnd;
     private ElementReference _textareaRef;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         Layout?.SetPageTitle("Agente");
+        _conversations = await Http.GetFromJsonAsync<List<ConversationSummaryDto>>("agent/conversations") ?? [];
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -38,6 +40,41 @@ public partial class Agent
         {
             _scrollPending = false;
             await JS.InvokeVoidAsync("scrollIntoView", _messagesEnd);
+        }
+    }
+
+    private void NewConversation()
+    {
+        _conversationId = null;
+        _messages.Clear();
+        _errorMessage = null;
+        _input = "";
+    }
+
+    private async Task SelectConversationAsync(string conversationId)
+    {
+        _conversationId = conversationId;
+        _messages.Clear();
+        _errorMessage = null;
+        _input = "";
+
+        var history = await Http.GetFromJsonAsync<List<ConversationMessageDto>>($"agent/chat/{conversationId}/history");
+        if (history is not null)
+            _messages.AddRange(history.Select(m => new ChatMessage(m.Role, m.Content)));
+
+        _scrollPending = true;
+    }
+
+    private async Task DeleteConversationAsync(string conversationId)
+    {
+        await Http.DeleteAsync($"agent/chat/{conversationId}/history");
+        _conversations.RemoveAll(c => c.ConversationId == conversationId);
+
+        if (_conversationId == conversationId)
+        {
+            _conversationId = null;
+            _messages.Clear();
+            _errorMessage = null;
         }
     }
 
@@ -76,6 +113,12 @@ public partial class Agent
                 var result = await response.Content.ReadFromJsonAsync<StartChatResponse>();
                 _conversationId = result!.ConversationId;
                 reply = result.Reply;
+
+                var summary = message.Length <= 100 ? message : message[..100];
+                _conversations.Insert(0, new ConversationSummaryDto(
+                    _conversationId,
+                    summary,
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
             }
             else
             {
@@ -99,17 +142,6 @@ public partial class Agent
         {
             _sending = false;
         }
-    }
-
-    private async Task ClearAsync()
-    {
-        if (_conversationId is not null)
-            await Http.DeleteAsync($"agent/chat/{_conversationId}/history");
-
-        _conversationId = null;
-        _messages.Clear();
-        _errorMessage = null;
-        _input = "";
     }
 
     private static readonly MarkdownPipeline MarkdownPipeline =
