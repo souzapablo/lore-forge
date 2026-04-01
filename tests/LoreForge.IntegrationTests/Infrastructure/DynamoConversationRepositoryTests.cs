@@ -96,6 +96,60 @@ public class DynamoConversationRepositoryTests(IntegrationTestWebAppFactory fact
         Assert.Single(resultB);
     }
 
+    [Fact(DisplayName = "Returns empty list when no conversations have been saved")]
+    public async Task Should_ReturnEmptyList_When_NoConversationsSaved()
+    {
+        var repo = CreateRepo();
+
+        var result = await repo.ListConversationsAsync(CancellationToken.None);
+
+        Assert.DoesNotContain(result, c => c.ConversationId == NewId());
+    }
+
+    [Fact(DisplayName = "Returns saved conversation when metadata is saved")]
+    public async Task Should_ReturnConversation_When_MetaSaved()
+    {
+        var repo = CreateRepo();
+        var conversationId = NewId();
+
+        await repo.SaveConversationMetaAsync(conversationId, "My first question", 1000, CancellationToken.None);
+        var result = await repo.ListConversationsAsync(CancellationToken.None);
+
+        Assert.Contains(result, c => c.ConversationId == conversationId && c.Summary == "My first question");
+    }
+
+    [Fact(DisplayName = "Returns conversations newest first when multiple conversations are saved")]
+    public async Task Should_ReturnConversationsNewestFirst_When_MultipleConversationsSaved()
+    {
+        var repo = CreateRepo();
+        var older = NewId();
+        var newer = NewId();
+
+        await repo.SaveConversationMetaAsync(older, "older", 1000, CancellationToken.None);
+        await repo.SaveConversationMetaAsync(newer, "newer", 2000, CancellationToken.None);
+
+        var result = await repo.ListConversationsAsync(CancellationToken.None);
+        var olderIndex = result.FindIndex(c => c.ConversationId == older);
+        var newerIndex = result.FindIndex(c => c.ConversationId == newer);
+
+        Assert.True(newerIndex < olderIndex);
+    }
+
+    [Fact(DisplayName = "Removes conversation from list when history is cleared")]
+    public async Task Should_RemoveConversationFromList_When_HistoryIsCleared()
+    {
+        var repo = CreateRepo();
+        var conversationId = NewId();
+
+        await repo.SaveConversationMetaAsync(conversationId, "to be cleared", 1000, CancellationToken.None);
+        await repo.SaveMessageAsync(BuildMessage(conversationId, "user", "hello"), CancellationToken.None);
+        await repo.ClearHistoryAsync(conversationId, CancellationToken.None);
+
+        var result = await repo.ListConversationsAsync(CancellationToken.None);
+
+        Assert.DoesNotContain(result, c => c.ConversationId == conversationId);
+    }
+
     private static string NewId() => Guid.NewGuid().ToString();
 
     private static ConversationMessage BuildMessage(

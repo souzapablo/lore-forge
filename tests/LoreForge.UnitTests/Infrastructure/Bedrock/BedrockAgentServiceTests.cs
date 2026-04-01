@@ -93,6 +93,97 @@ public class BedrockAgentServiceTests
             Arg.Any<CancellationToken>());
     }
 
+    [Fact(DisplayName = "Saves conversation metadata when history is empty")]
+    public async Task Should_SaveConversationMeta_When_HistoryIsEmpty()
+    {
+        var client = Substitute.For<IAmazonBedrockRuntime>();
+        client.ConverseAsync(Arg.Any<ConverseRequest>(), Arg.Any<CancellationToken>())
+            .Returns(EndTurnResponse("reply"));
+
+        var conversations = Substitute.For<IConversationRepository>();
+        conversations.GetHistoryAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([]);
+
+        var service = CreateService(client, conversations: conversations);
+        await service.ChatAsync("conv-1", "hello world", CancellationToken.None);
+
+        await conversations.Received(1).SaveConversationMetaAsync(
+            "conv-1",
+            Arg.Is<string>(s => s == "hello world"),
+            Arg.Any<long>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact(DisplayName = "Does not save conversation metadata when history already exists")]
+    public async Task Should_NotSaveConversationMeta_When_HistoryExists()
+    {
+        var client = Substitute.For<IAmazonBedrockRuntime>();
+        client.ConverseAsync(Arg.Any<ConverseRequest>(), Arg.Any<CancellationToken>())
+            .Returns(EndTurnResponse("reply"));
+
+        var conversations = Substitute.For<IConversationRepository>();
+        var service = CreateService(client, conversations: conversations);
+
+        conversations.GetHistoryAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns([new ConversationMessage { ConversationId = "conv-1", Role = "user", Content = "previous" }]);
+
+        await service.ChatAsync("conv-1", "follow-up", CancellationToken.None);
+
+        await conversations.DidNotReceive().SaveConversationMetaAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<long>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact(DisplayName = "Truncates summary to 100 characters when first message is longer")]
+    public async Task Should_TruncateSummary_When_FirstMessageExceeds100Characters()
+    {
+        var client = Substitute.For<IAmazonBedrockRuntime>();
+        client.ConverseAsync(Arg.Any<ConverseRequest>(), Arg.Any<CancellationToken>())
+            .Returns(EndTurnResponse("reply"));
+
+        var conversations = Substitute.For<IConversationRepository>();
+        conversations.GetHistoryAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([]);
+
+        var longMessage = new string('a', 150);
+        var service = CreateService(client, conversations: conversations);
+        await service.ChatAsync("conv-1", longMessage, CancellationToken.None);
+
+        await conversations.Received(1).SaveConversationMetaAsync(
+            "conv-1",
+            Arg.Is<string>(s => s.Length == 100),
+            Arg.Any<long>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact(DisplayName = "Strips XML tags from model reply before returning")]
+    public async Task Should_StripXmlTags_When_ModelResponseContainsXmlTags()
+    {
+        var client = Substitute.For<IAmazonBedrockRuntime>();
+        client.ConverseAsync(Arg.Any<ConverseRequest>(), Arg.Any<CancellationToken>())
+            .Returns(EndTurnResponse("<thinking>internal reasoning</thinking>\n\nActual reply."));
+
+        var service = CreateService(client);
+        var result = await service.ChatAsync("conv-1", "hello", CancellationToken.None);
+
+        Assert.Equal("Actual reply.", result);
+    }
+
+    [Fact(DisplayName = "Saves stripped text to conversation history")]
+    public async Task Should_SaveStrippedText_When_ModelResponseContainsXmlTags()
+    {
+        var client = Substitute.For<IAmazonBedrockRuntime>();
+        client.ConverseAsync(Arg.Any<ConverseRequest>(), Arg.Any<CancellationToken>())
+            .Returns(EndTurnResponse("<thinking>internal reasoning</thinking>\n\nActual reply."));
+
+        var conversations = Substitute.For<IConversationRepository>();
+        conversations.GetHistoryAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([]);
+
+        var service = CreateService(client, conversations: conversations);
+        await service.ChatAsync("conv-1", "hello", CancellationToken.None);
+
+        await conversations.Received(1).SaveMessageAsync(
+            Arg.Is<ConversationMessage>(m => m.Role == "assistant" && m.Content == "Actual reply."),
+            Arg.Any<CancellationToken>());
+    }
+
     [Fact(DisplayName = "Throws when the agent loop exceeds max iterations")]
     public async Task Should_Throw_When_MaxIterationsExceeded()
     {
