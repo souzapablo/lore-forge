@@ -76,8 +76,10 @@ public partial class WorkDetail
 
     private async Task SaveAsync()
     {
+        _errorMessage = Validate();
+        if (_errorMessage is not null) return;
+
         _saving = true;
-        _errorMessage = null;
 
         var request = new
         {
@@ -110,6 +112,42 @@ public partial class WorkDetail
         }
 
         _saving = false;
+    }
+
+    private bool NoNotesFilledIn() =>
+        string.IsNullOrWhiteSpace(_form.Worldbuilding)
+        && string.IsNullOrWhiteSpace(_form.Magic)
+        && string.IsNullOrWhiteSpace(_form.Characters)
+        && string.IsNullOrWhiteSpace(_form.Themes)
+        && string.IsNullOrWhiteSpace(_form.PlotStructure)
+        && string.IsNullOrWhiteSpace(_form.WhatILiked);
+
+    private string TitleInputClass =>
+        _errorMessage is not null && string.IsNullOrWhiteSpace(_form.Title)
+            ? "field-input field-title field-invalid"
+            : "field-input field-title";
+
+    private string NotesGridClass =>
+        _errorMessage is not null && NoNotesFilledIn()
+            ? "notes-grid notes-grid-invalid"
+            : "notes-grid";
+
+    private string? Validate()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Title))
+            return "O título é obrigatório.";
+
+        var hasNotes = !string.IsNullOrWhiteSpace(_form.Worldbuilding)
+            || !string.IsNullOrWhiteSpace(_form.Magic)
+            || !string.IsNullOrWhiteSpace(_form.Characters)
+            || !string.IsNullOrWhiteSpace(_form.Themes)
+            || !string.IsNullOrWhiteSpace(_form.PlotStructure)
+            || !string.IsNullOrWhiteSpace(_form.WhatILiked);
+
+        if (!hasNotes)
+            return "Preencha pelo menos um campo de notas.";
+
+        return null;
     }
 
     private static string[] SplitCsv(string? value) =>

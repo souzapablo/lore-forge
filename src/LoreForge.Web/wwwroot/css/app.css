@@ -426,3 +426,12 @@ a { color: inherit; text-decoration: none; }
 .loading-spinner { color: var(--gold); animation: spin 1s linear infinite; display: inline-block; }
 
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ── Validation ── */
+.field-invalid {
+    border-color: rgba(220, 80, 80, 0.5) !important;
+}
+
+.field-invalid:focus {
+    border-color: rgba(220, 80, 80, 0.8) !important;
+}

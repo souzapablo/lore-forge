@@ -29,7 +29,7 @@ else if (_work is not null)
             {
                 <div class="work-detail-title-row">
                     <div class="work-type-dot @DotClass(_work.Type)"></div>
-                    <input class="field-input field-title" @bind="_form.Title" placeholder="Título" />
+                    <input class="@TitleInputClass" @bind="_form.Title" placeholder="Título" />
                 </div>
                 <div class="work-detail-meta">
                     <span class="work-type-label">@TypeLabel(_work.Type)</span>
@@ -95,7 +95,7 @@ else if (_work is not null)
                 </div>
             </div>
 
-            <div class="notes-grid">
+            <div class="@NotesGridClass">
                 <div class="note-card">
                     <label class="note-card-label">Worldbuilding</label>
                     <textarea class="field-textarea" @bind="_form.Worldbuilding" placeholder="Notas sobre o mundo…"></textarea>

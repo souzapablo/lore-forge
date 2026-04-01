@@ -138,6 +138,10 @@
     line-height: 1.6;
 }
 
+.notes-grid-invalid .note-card {
+    border-color: rgba(220, 80, 80, 0.3);
+}
+
 .field-error-banner {
     margin: 0 28px;
     padding: 10px 14px;
