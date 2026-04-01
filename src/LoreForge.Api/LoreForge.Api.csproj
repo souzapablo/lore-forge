@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
+    <Content Include="assets/prompts/*.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\LoreForge.Core\LoreForge.Core.csproj" />
     <ProjectReference Include="..\LoreForge.Infrastructure\LoreForge.Infrastructure.csproj" />
     <ProjectReference Include="..\LoreForge.Contracts\LoreForge.Contracts.csproj" />
