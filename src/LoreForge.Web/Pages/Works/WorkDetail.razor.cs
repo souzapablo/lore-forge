@@ -21,6 +21,7 @@ public partial class WorkDetail
     private bool _notFound;
     private bool _editing;
     private bool _saving;
+    private bool _confirmingDelete;
     private string? _errorMessage;
     private EditForm _form = new();
 
@@ -72,6 +73,16 @@ public partial class WorkDetail
     {
         _editing = false;
         _errorMessage = null;
+    }
+
+    private void RequestDelete() => _confirmingDelete = true;
+
+    private void CancelDelete() => _confirmingDelete = false;
+
+    private async Task ConfirmDeleteAsync()
+    {
+        await Http.DeleteAsync($"logbook/works/{Id}");
+        Nav.NavigateTo("/works");
     }
 
     private async Task SaveAsync()

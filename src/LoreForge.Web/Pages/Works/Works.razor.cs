@@ -86,6 +86,19 @@ public partial class Works
 
     private void OpenWork(Guid id) => Nav.NavigateTo($"/works/{id}");
 
+    private Guid? _confirmingDeleteId;
+
+    private void RequestDelete(Guid id) => _confirmingDeleteId = id;
+
+    private void CancelDelete() => _confirmingDeleteId = null;
+
+    private async Task ConfirmDeleteAsync(Guid id)
+    {
+        await Http.DeleteAsync($"logbook/works/{id}");
+        _confirmingDeleteId = null;
+        await LoadAsync();
+    }
+
     private static string DotClass(WorkType type) => type switch
     {
         WorkType.Game   => "dot-game",

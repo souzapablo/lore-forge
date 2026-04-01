@@ -70,6 +70,18 @@ else
                             }
                         </div>
                     }
+                    <div class="work-card-actions" @onclick:stopPropagation>
+                        @if (_confirmingDeleteId == work.Id)
+                        {
+                            <span class="delete-confirm-label">Excluir?</span>
+                            <button class="btn btn-ghost btn-sm" @onclick="CancelDelete">Não</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDeleteAsync(work.Id)">Sim</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-ghost btn-sm" @onclick="() => RequestDelete(work.Id)">Excluir</button>
+                        }
+                    </div>
                 </div>
             }
         </div>
