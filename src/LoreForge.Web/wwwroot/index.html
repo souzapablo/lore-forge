@@ -27,6 +27,14 @@
         <a href="." class="reload">Recarregar</a>
         <span class="dismiss">✕</span>
     </div>
+    <script>
+        window.scrollIntoView = (el) => el?.scrollIntoView({ behavior: 'smooth' });
+        window.preventEnterDefault = (el) => {
+            el?.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && !e.shiftKey) e.preventDefault();
+            });
+        };
+    </script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
 </body>
 </html>

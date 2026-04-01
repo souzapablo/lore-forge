@@ -1,3 +1,4 @@
+using Amazon.DynamoDBv2;
 using LoreForge.Core.Ports;
 using LoreForge.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,8 @@ public abstract class BaseIntegrationTest : IDisposable
     protected readonly HttpClient Client;
     protected readonly LoreForgeDbContext Context;
     protected readonly IEmbeddingService EmbeddingService;
+    protected readonly IAgentService AgentService;
+    protected readonly IAmazonDynamoDB DynamoDb;
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
@@ -23,14 +26,19 @@ public abstract class BaseIntegrationTest : IDisposable
         Context = _scope.ServiceProvider.GetRequiredService<LoreForgeDbContext>();
         Client = factory.CreateClient();
         EmbeddingService = factory.EmbeddingService;
+        AgentService = factory.AgentService;
+        DynamoDb = factory.DynamoDb;
 
         EmbeddingService.ClearReceivedCalls();
         EmbeddingService
             .EmbedAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(DefaultEmbedding);
 
+        AgentService.ClearReceivedCalls();
+
         Context.Works.ExecuteDelete();
         Context.JournalEntries.ExecuteDelete();
+        Context.WorldNotes.ExecuteDelete();
     }
 
     public void Dispose() => _scope.Dispose();

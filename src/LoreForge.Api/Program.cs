@@ -1,7 +1,10 @@
 using Amazon.BedrockRuntime;
+using Amazon.DynamoDBv2;
 using LoreForge.Api.Extensions;
 using LoreForge.Core.Ports;
 using LoreForge.Infrastructure.Bedrock;
+using LoreForge.Infrastructure.Bedrock.AgentTools;
+using LoreForge.Infrastructure.DynamoDB;
 using LoreForge.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -20,7 +23,21 @@ builder.Services.AddDbContext<LoreForgeDbContext>(options =>
            .UseSnakeCaseNamingConvention());
 
 builder.Services.AddSingleton<IAmazonBedrockRuntime>(_ => new AmazonBedrockRuntimeClient());
+builder.Services.AddSingleton<IAmazonDynamoDB>(sp =>
+{
+    var serviceUrl = builder.Configuration["DynamoDB:ServiceUrl"];
+    if (!string.IsNullOrEmpty(serviceUrl))
+    {
+        var config = new AmazonDynamoDBConfig { ServiceURL = serviceUrl };
+        return new AmazonDynamoDBClient("local", "local", config);
+    }
+    return new AmazonDynamoDBClient();
+});
 builder.Services.AddScoped<IEmbeddingService, BedrockEmbeddingService>();
+builder.Services.AddScoped<IVectorStore, EfVectorStore>();
+builder.Services.AddScoped<IConversationRepository, DynamoConversationRepository>();
+builder.Services.AddScoped<IAgentService, BedrockAgentService>();
+builder.Services.AddScoped<IAgentTool, SearchInspirationTool>();
 
 builder.Services.AddEndpointHandlers(typeof(Program).Assembly);
 
