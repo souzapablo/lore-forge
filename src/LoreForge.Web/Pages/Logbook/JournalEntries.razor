@@ -1,0 +1,146 @@
+@page "/journal"
+
+<PageTitle>Anotações — Lore Forge</PageTitle>
+
+<div class="page-header">
+    <div class="page-header-text">
+        <h1>Anotações</h1>
+        <p>Reflexões e impressões sobre o que você leu, jogou ou assistiu</p>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn btn-gold" @onclick="OpenAddModal">+ Nova anotação</button>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <span class="filter-label">Origem</span>
+    @foreach (var source in Enum.GetValues<JournalSource>())
+    {
+        <button class="btn btn-ghost @(SelectedSources.Contains(source) ? "active" : "")"
+                @onclick="() => ToggleSource(source)">
+            @SourceLabel(source)
+        </button>
+    }
+</div>
+
+@if (_showAddModal)
+{
+    <div class="modal-overlay" @onclick="CloseAddModal">
+        <div class="modal" @onclick:stopPropagation>
+            <div class="modal-header">
+                <span class="modal-title">Nova anotação</span>
+                <button class="modal-close" @onclick="CloseAddModal">✕</button>
+            </div>
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(_addErrorMessage))
+                {
+                    <div class="field-error-banner">@_addErrorMessage</div>
+                }
+                <div class="edit-meta-row">
+                    <div class="field-group">
+                        <label class="field-label">Obra <span class="field-hint">(opcional)</span></label>
+                        <select class="field-select" @bind="_addForm.WorkId">
+                            <option value="">Nenhuma obra</option>
+                            @foreach (var work in _works)
+                            {
+                                <option value="@work.Id">@work.Title</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Origem</label>
+                        <select class="field-select" @bind="_addForm.Source">
+                            @foreach (var source in Enum.GetValues<JournalSource>())
+                            {
+                                <option value="@source">@SourceLabel(source)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(_addForm.WorkId))
+                {
+                    <div class="field-group">
+                        <label class="field-label">Progresso <span class="field-hint">(opcional)</span></label>
+                        <input class="field-input" @bind="_addForm.ProgressSnapshot" placeholder="Ex: capítulo 12, 40h de jogo…" />
+                    </div>
+                }
+                <div class="field-group">
+                    <label class="field-label">Conteúdo</label>
+                    <textarea class="@AddContentClass" @bind="_addForm.RawContent"
+                              placeholder="Escreva suas impressões, reflexões ou anotações…"
+                              style="min-height: 140px;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" @onclick="CloseAddModal">Cancelar</button>
+                <button class="btn btn-gold" @onclick="SaveAddAsync" disabled="@_addSaving">
+                    @(_addSaving ? "Salvando…" : "Adicionar")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <div class="loading-state">
+        <span class="loading-spinner">◌</span> Carregando anotações…
+    </div>
+}
+else if (_result is null || _result.Items.Count == 0)
+{
+    <div class="empty-state">
+        <div class="empty-state-sigil">✎</div>
+        <div class="empty-state-title">Nenhuma anotação ainda</div>
+        <div class="empty-state-sub">Registre suas impressões sobre obras para alimentar o agente.</div>
+    </div>
+}
+else
+{
+    <div class="page-content">
+        <div class="journal-list">
+            @foreach (var entry in _result.Items)
+            {
+                <div class="journal-card">
+                    <div class="journal-card-header">
+                        <div class="journal-card-meta">
+                            <span class="source-badge source-@entry.Source.ToString().ToLower()">@SourceLabel(entry.Source)</span>
+                            @if (entry.WorkId.HasValue && _worksById.TryGetValue(entry.WorkId.Value, out var work))
+                            {
+                                <span class="journal-card-work">@work.Title</span>
+                            }
+                            @if (!string.IsNullOrEmpty(entry.ProgressSnapshot))
+                            {
+                                <span class="journal-card-progress">@entry.ProgressSnapshot</span>
+                            }
+                        </div>
+                        <span class="journal-card-date">@FormatDate(entry.CreatedAt)</span>
+                    </div>
+                    <div class="journal-card-content">@Truncate(entry.RawContent, 300)</div>
+                    <div class="journal-card-actions">
+                        @if (_confirmingDeleteId == entry.Id)
+                        {
+                            <span class="delete-confirm-label">Excluir?</span>
+                            <button class="btn btn-ghost btn-sm" @onclick="CancelDelete">Não</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDeleteAsync(entry.Id)">Sim</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-ghost btn-sm" @onclick="() => RequestDelete(entry.Id)">Excluir</button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="pagination-bar">
+        <span class="pagination-info">
+            @((_currentPage - 1) * PageSize + 1)–@Math.Min(_currentPage * PageSize, _result.TotalCount) de @_result.TotalCount anotações
+        </span>
+        <div class="pagination-controls">
+            <button class="btn btn-ghost" disabled="@(!_result.HasPreviousPage)" @onclick="PreviousPage">← Anterior</button>
+            <button class="btn btn-ghost" disabled="@(!_result.HasNextPage)" @onclick="NextPage">Próxima →</button>
+        </div>
+    </div>
+}

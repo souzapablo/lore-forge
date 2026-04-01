@@ -4,6 +4,9 @@ namespace LoreForge.Core.Errors;
 
 public static class JournalEntryErrors
 {
+    public static Error NotFound(Guid id) =>
+        new("JournalEntry.NotFound", $"Journal entry '{id}' does not exist.", ErrorType.NotFound);
+
     public static readonly Error ContentEmpty =
         new("JournalEntry.ContentEmpty", "RawContent is required.", ErrorType.Validation);
 
