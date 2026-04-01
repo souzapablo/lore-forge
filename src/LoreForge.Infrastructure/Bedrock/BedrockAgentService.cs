@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Amazon.BedrockRuntime;
 using Amazon.BedrockRuntime.Model;
 using Amazon.Runtime.Documents;
@@ -18,6 +19,9 @@ public class BedrockAgentService(
     ILogger<BedrockAgentService> logger) : IAgentService
 {
     private const int MaxIterations = 10;
+
+    private static readonly Regex XmlTagPattern =
+        new(@"<[^>]+>[\s\S]*?</[^>]+>", RegexOptions.Compiled);
 
     private readonly string _modelId = config["Bedrock:AgentModelId"]
         ?? throw new InvalidOperationException("Bedrock:AgentModelId is not configured.");
@@ -105,8 +109,10 @@ public class BedrockAgentService(
                 continue;
             }
 
-            var text = response.Output.Message.Content
+            var raw = response.Output.Message.Content
                 .FirstOrDefault(b => b.Text is not null)?.Text ?? string.Empty;
+
+            var text = XmlTagPattern.Replace(raw, string.Empty).Trim();
 
             await conversations.SaveMessageAsync(BuildMessage(conversationId, "assistant", text), ct);
 
