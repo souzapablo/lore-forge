@@ -8,7 +8,7 @@
         <p>Jogos, livros, filmes e séries do seu diário</p>
     </div>
     <div class="page-header-actions">
-        <button class="btn btn-gold" @onclick="OpenAddWork">+ Adicionar obra</button>
+        <button class="btn btn-gold" @onclick="OpenAddModal">+ Adicionar obra</button>
     </div>
 </div>
 
@@ -31,6 +31,90 @@
         </button>
     }
 </div>
+
+@if (_showAddModal)
+{
+    <div class="modal-overlay" @onclick="CloseAddModal">
+        <div class="modal" @onclick:stopPropagation>
+            <div class="modal-header">
+                <span class="modal-title">Nova obra</span>
+                <button class="modal-close" @onclick="CloseAddModal">✕</button>
+            </div>
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(_addErrorMessage))
+                {
+                    <div class="field-error-banner">@_addErrorMessage</div>
+                }
+                <div class="edit-meta-row">
+                    <div class="field-group">
+                        <label class="field-label">Título</label>
+                        <input class="@AddTitleInputClass" @bind="_addForm.Title" placeholder="Nome da obra" />
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Tipo</label>
+                        <select class="field-select" @bind="_addForm.Type">
+                            @foreach (var type in Enum.GetValues<WorkType>())
+                            {
+                                <option value="@type">@TypeLabel(type)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Status</label>
+                        <select class="field-select" @bind="_addForm.Status">
+                            @foreach (var status in Enum.GetValues<WorkStatus>())
+                            {
+                                <option value="@status">@StatusLabel(status)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="edit-meta-row">
+                    <div class="field-group">
+                        <label class="field-label">Gêneros <span class="field-hint">(separados por vírgula)</span></label>
+                        <input class="field-input" @bind="_addForm.Genres" placeholder="rpg, ação, fantasia" />
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Tags <span class="field-hint">(separadas por vírgula)</span></label>
+                        <input class="field-input" @bind="_addForm.Tags" placeholder="fromsoft, favorito" />
+                    </div>
+                </div>
+                <div class="@AddNotesGridClass">
+                    <div class="note-card">
+                        <label class="note-card-label">Worldbuilding</label>
+                        <textarea class="field-textarea" @bind="_addForm.Worldbuilding" placeholder="Notas sobre o mundo…"></textarea>
+                    </div>
+                    <div class="note-card">
+                        <label class="note-card-label">Magia</label>
+                        <textarea class="field-textarea" @bind="_addForm.Magic" placeholder="Sistema de magia, poderes…"></textarea>
+                    </div>
+                    <div class="note-card">
+                        <label class="note-card-label">Personagens</label>
+                        <textarea class="field-textarea" @bind="_addForm.Characters" placeholder="Personagens marcantes…"></textarea>
+                    </div>
+                    <div class="note-card">
+                        <label class="note-card-label">Temas</label>
+                        <textarea class="field-textarea" @bind="_addForm.Themes" placeholder="Temas e ideias centrais…"></textarea>
+                    </div>
+                    <div class="note-card">
+                        <label class="note-card-label">Estrutura narrativa</label>
+                        <textarea class="field-textarea" @bind="_addForm.PlotStructure" placeholder="Como a história se estrutura…"></textarea>
+                    </div>
+                    <div class="note-card">
+                        <label class="note-card-label">O que eu gostei</label>
+                        <textarea class="field-textarea" @bind="_addForm.WhatILiked" placeholder="O que mais te marcou…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" @onclick="CloseAddModal">Cancelar</button>
+                <button class="btn btn-gold" @onclick="SaveAddAsync" disabled="@_addSaving">
+                    @(_addSaving ? "Salvando…" : "Adicionar")
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @if (_loading)
 {

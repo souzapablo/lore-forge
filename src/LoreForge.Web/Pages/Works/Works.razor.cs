@@ -82,9 +82,121 @@ public partial class Works
         await LoadAsync();
     }
 
-    private void OpenAddWork() => Nav.NavigateTo("/works/add");
-
     private void OpenWork(Guid id) => Nav.NavigateTo($"/works/{id}");
+
+    // ── Add modal ──
+
+    private bool _showAddModal;
+    private bool _addSaving;
+    private string? _addErrorMessage;
+    private AddForm _addForm = new();
+
+    private string AddTitleInputClass =>
+        _addErrorMessage is not null && string.IsNullOrWhiteSpace(_addForm.Title)
+            ? "field-input field-invalid"
+            : "field-input";
+
+    private string AddNotesGridClass =>
+        _addErrorMessage is not null && AddNoNotesFilledIn()
+            ? "notes-grid notes-grid-invalid"
+            : "notes-grid";
+
+    private bool AddNoNotesFilledIn() =>
+        string.IsNullOrWhiteSpace(_addForm.Worldbuilding)
+        && string.IsNullOrWhiteSpace(_addForm.Magic)
+        && string.IsNullOrWhiteSpace(_addForm.Characters)
+        && string.IsNullOrWhiteSpace(_addForm.Themes)
+        && string.IsNullOrWhiteSpace(_addForm.PlotStructure)
+        && string.IsNullOrWhiteSpace(_addForm.WhatILiked);
+
+    private void OpenAddModal()
+    {
+        _addForm = new AddForm();
+        _addErrorMessage = null;
+        _showAddModal = true;
+    }
+
+    private void CloseAddModal()
+    {
+        _showAddModal = false;
+        _addErrorMessage = null;
+    }
+
+    private async Task SaveAddAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_addForm.Title))
+        {
+            _addErrorMessage = "O título é obrigatório.";
+            return;
+        }
+
+        if (AddNoNotesFilledIn())
+        {
+            _addErrorMessage = "Preencha pelo menos um campo de notas.";
+            return;
+        }
+
+        _addSaving = true;
+
+        var request = new
+        {
+            Title = _addForm.Title,
+            Type = _addForm.Type,
+            Genres = SplitCsv(_addForm.Genres),
+            Status = _addForm.Status,
+            Progress = (object?)null,
+            Notes = new
+            {
+                Worldbuilding = NullIfEmpty(_addForm.Worldbuilding),
+                Magic = NullIfEmpty(_addForm.Magic),
+                Characters = NullIfEmpty(_addForm.Characters),
+                Themes = NullIfEmpty(_addForm.Themes),
+                PlotStructure = NullIfEmpty(_addForm.PlotStructure),
+                WhatILiked = NullIfEmpty(_addForm.WhatILiked)
+            },
+            Tags = SplitCsv(_addForm.Tags)
+        };
+
+        var response = await Http.PostAsJsonAsync("logbook/works", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _showAddModal = false;
+            _currentPage = 1;
+            await LoadAsync();
+        }
+        else
+        {
+            _addErrorMessage = "Não foi possível adicionar a obra. Tente novamente.";
+        }
+
+        _addSaving = false;
+    }
+
+    private static string[] SplitCsv(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? []
+            : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private static string? NullIfEmpty(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
+
+    private class AddForm
+    {
+        public string Title { get; set; } = "";
+        public WorkType Type { get; set; } = WorkType.Book;
+        public WorkStatus Status { get; set; } = WorkStatus.InProgress;
+        public string Genres { get; set; } = "";
+        public string Tags { get; set; } = "";
+        public string? Worldbuilding { get; set; }
+        public string? Magic { get; set; }
+        public string? Characters { get; set; }
+        public string? Themes { get; set; }
+        public string? PlotStructure { get; set; }
+        public string? WhatILiked { get; set; }
+    }
+
+    // ── Delete ──
 
     private Guid? _confirmingDeleteId;
 
