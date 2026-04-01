@@ -1,5 +1,6 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
+using Amazon.Runtime;
 using LoreForge.Core.Ports;
 using LoreForge.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
@@ -63,10 +64,12 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
         await Task.WhenAll(_postgres.StartAsync(), _dynamoDb.StartAsync());
 
         // DynamoDb must be set before Services is accessed for the first time
-        DynamoDb = new AmazonDynamoDBClient(new AmazonDynamoDBConfig
-        {
-            ServiceURL = _dynamoDb.GetConnectionString()
-        });
+        DynamoDb = new AmazonDynamoDBClient(
+            new BasicAWSCredentials("dummy", "dummy"),
+            new AmazonDynamoDBConfig
+            {
+                ServiceURL = _dynamoDb.GetConnectionString()
+            });
 
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<LoreForgeDbContext>();
