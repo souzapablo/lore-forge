@@ -27,7 +27,7 @@ public partial class Agent
 
     protected override async Task OnInitializedAsync()
     {
-        Layout?.SetPageTitle("Agente");
+        Layout?.SetPageTitle("Sibila");
         _conversations = await Http.GetFromJsonAsync<List<ConversationSummaryDto>>("agent/conversations") ?? [];
     }
 
