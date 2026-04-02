@@ -1,0 +1,154 @@
+@page "/world-notes"
+
+<PageTitle>Notas do Mundo — Lore Forge</PageTitle>
+
+<div class="page-header">
+    <div class="page-header-text">
+        <h1>Notas do Mundo</h1>
+        <p>Personagens, locais, magia e lore do seu universo</p>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn btn-gold" @onclick="OpenAddModal">+ Nova nota</button>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <span class="filter-label">Categoria</span>
+    @foreach (var cat in Enum.GetValues<WorldNoteCategory>())
+    {
+        <button class="btn btn-ghost @(SelectedCategory == cat ? "active" : "")"
+                @onclick="() => SelectCategory(cat)">
+            @CategoryLabel(cat)
+        </button>
+    }
+    @if (SelectedCategory is not null)
+    {
+        <button class="btn btn-ghost" @onclick="ClearCategory">Todas</button>
+    }
+</div>
+
+@if (_showAddModal)
+{
+    <div class="modal-overlay" @onclick="CloseAddModal">
+        <div class="modal" @onclick:stopPropagation>
+            <div class="modal-header">
+                <span class="modal-title">Nova nota</span>
+                <button class="modal-close" @onclick="CloseAddModal">✕</button>
+            </div>
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(_modalErrorMessage))
+                {
+                    <div class="field-error-banner">@_modalErrorMessage</div>
+                }
+                <div class="edit-meta-row">
+                    <div class="field-group">
+                        <label class="field-label">Título</label>
+                        <input class="@AddTitleInputClass" @bind="_addForm.Title" placeholder="Nome da nota" />
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Categoria</label>
+                        <select class="field-select" @bind="_addForm.Category">
+                            @foreach (var cat in Enum.GetValues<WorldNoteCategory>())
+                            {
+                                <option value="@cat">@CategoryLabel(cat)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Conteúdo</label>
+                    <textarea class="field-textarea note-textarea" @bind="_addForm.Content" placeholder="Descreva este elemento do mundo…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" @onclick="CloseAddModal">Cancelar</button>
+                <button class="btn btn-gold" @onclick="SaveAddAsync" disabled="@_modalSaving">
+                    @(_modalSaving ? "Salvando…" : "Adicionar")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showEditModal && _editForm is not null)
+{
+    <div class="modal-overlay" @onclick="CloseEditModal">
+        <div class="modal" @onclick:stopPropagation>
+            <div class="modal-header">
+                <span class="modal-title">Editar nota</span>
+                <button class="modal-close" @onclick="CloseEditModal">✕</button>
+            </div>
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(_modalErrorMessage))
+                {
+                    <div class="field-error-banner">@_modalErrorMessage</div>
+                }
+                <div class="edit-meta-row">
+                    <div class="field-group">
+                        <label class="field-label">Título</label>
+                        <input class="field-input" value="@_editForm.Title" disabled />
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Categoria</label>
+                        <input class="field-input" value="@CategoryLabel(_editForm.Category)" disabled />
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Conteúdo</label>
+                    <textarea class="field-textarea note-textarea" @bind="_editForm.Content"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" @onclick="CloseEditModal">Cancelar</button>
+                <button class="btn btn-gold" @onclick="SaveEditAsync" disabled="@_modalSaving">
+                    @(_modalSaving ? "Salvando…" : "Salvar")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <div class="loading-state">
+        <span class="loading-spinner">◌</span> Carregando notas do mundo…
+    </div>
+}
+else if (_result is null || _result.Items.Count == 0)
+{
+    <div class="empty-state">
+        <div class="empty-state-sigil">◉</div>
+        <div class="empty-state-title">Nenhuma nota ainda</div>
+        <div class="empty-state-sub">Adicione a primeira nota para começar a construir seu universo.</div>
+    </div>
+}
+else
+{
+    <div class="page-content">
+        <div class="notes-list">
+            @foreach (var note in _result.Items)
+            {
+                <div class="note-row" @onclick="() => OpenEditModal(note)">
+                    <div class="note-row-left">
+                        <div class="note-row-badge @CategoryClass(note.Category)">@CategoryLabel(note.Category)</div>
+                        <div class="note-row-date">@note.UpdatedAt.ToString("dd/MM/yy")</div>
+                    </div>
+                    <div class="note-row-body">
+                        <div class="note-row-title">@note.Title</div>
+                        <div class="note-row-preview">@Truncate(note.Content, 120)</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="pagination-bar">
+        <span class="pagination-info">
+            @((_currentPage - 1) * PageSize + 1)–@Math.Min(_currentPage * PageSize, _result.TotalCount) de @_result.TotalCount notas
+        </span>
+        <div class="pagination-controls">
+            <button class="btn btn-ghost" disabled="@(!_result.HasPreviousPage)" @onclick="PreviousPage">← Anterior</button>
+            <button class="btn btn-ghost" disabled="@(!_result.HasNextPage)" @onclick="NextPage">Próxima →</button>
+        </div>
+    </div>
+}
