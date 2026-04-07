@@ -9,4 +9,7 @@ public static class WorldNoteErrors
 
     public static readonly Error ContentEmpty =
         new("WorldNote.ContentEmpty", "Content is required.", ErrorType.Validation);
+
+    public static Error NotFound(Guid id) =>
+        new("WorldNote.NotFound", $"World note with id '{id}' was not found.", ErrorType.NotFound);
 }
