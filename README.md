@@ -2,6 +2,8 @@
 
 Personal writing assistant. Helps with creative writing ideas by learning from your personal logbook of games, books, movies, and shows.
 
+The AI agent is named **Sibila** — a creative muse that draws on your logbook and world notes to help you develop your story.
+
 > Lore Forge does **not** write your story — it helps you think through it.
 
 ---
@@ -45,7 +47,8 @@ LoreForge.sln
 │   │   └── Primitives/          # Result<T>, Error, PagedResult<T>
 │   ├── LoreForge.Contracts      # Shared request/response DTOs (referenced by Api + Web)
 │   │   ├── Common/              # PagedResult
-│   │   └── Logbook/             # WorkSummary, JournalEntrySummary
+│   │   ├── Logbook/             # WorkSummary, JournalEntrySummary
+│   │   └── WorldNotes/          # WorldNoteSummary
 │   ├── LoreForge.Infrastructure # AWS Bedrock, pgvector, DynamoDB integrations
 │   │   ├── Bedrock/
 │   │   │   └── AgentTools/
@@ -53,8 +56,10 @@ LoreForge.sln
 │   └── LoreForge.Web            # Blazor WASM frontend
 │       ├── Layout/              # MainLayout
 │       ├── Pages/
-│       │   ├── Works/           # Works.razor + Works.razor.cs + Works.razor.css
-│       │   └── ...
+│       │   ├── Works/           # Works.razor, WorkDetail.razor
+│       │   ├── Logbook/         # JournalEntries.razor
+│       │   ├── WorldNotes/      # WorldNotes.razor
+│       │   └── Agent/           # Agent.razor (Sibila chat)
 │       └── Shared/
 └── tests/
     ├── LoreForge.UnitTests
