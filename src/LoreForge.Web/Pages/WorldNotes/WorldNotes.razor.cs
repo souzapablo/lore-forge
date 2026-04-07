@@ -143,9 +143,12 @@ public partial class WorldNotes
 
     private bool _showEditModal;
     private NoteForm? _editForm;
+    private Guid _editNoteId;
+    private bool _confirmingDelete;
 
     private void OpenEditModal(WorldNoteSummary note)
     {
+        _editNoteId = note.Id;
         _editForm = new NoteForm
         {
             Title = note.Title,
@@ -153,6 +156,7 @@ public partial class WorldNotes
             Content = note.Content
         };
         _modalErrorMessage = null;
+        _confirmingDelete = false;
         _showEditModal = true;
     }
 
@@ -160,6 +164,22 @@ public partial class WorldNotes
     {
         _showEditModal = false;
         _modalErrorMessage = null;
+        _confirmingDelete = false;
+    }
+
+    private void RequestDelete() => _confirmingDelete = true;
+
+    private void CancelDelete() => _confirmingDelete = false;
+
+    private async Task ConfirmDeleteAsync()
+    {
+        _modalSaving = true;
+        await Http.DeleteAsync($"world-notes/{_editNoteId}");
+        _showEditModal = false;
+        _confirmingDelete = false;
+        _currentPage = 1;
+        await LoadAsync();
+        _modalSaving = false;
     }
 
     private async Task SaveEditAsync()

@@ -99,10 +99,20 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-ghost" @onclick="CloseEditModal">Cancelar</button>
-                <button class="btn btn-gold" @onclick="SaveEditAsync" disabled="@_modalSaving">
-                    @(_modalSaving ? "Salvando…" : "Salvar")
-                </button>
+                @if (_confirmingDelete)
+                {
+                    <span class="delete-confirm-label">Tem certeza?</span>
+                    <button class="btn btn-ghost" @onclick="CancelDelete">Não</button>
+                    <button class="btn btn-danger" @onclick="ConfirmDeleteAsync" disabled="@_modalSaving">Sim, excluir</button>
+                }
+                else
+                {
+                    <button class="btn btn-ghost" @onclick="RequestDelete">Excluir</button>
+                    <button class="btn btn-ghost" @onclick="CloseEditModal">Cancelar</button>
+                    <button class="btn btn-gold" @onclick="SaveEditAsync" disabled="@_modalSaving">
+                        @(_modalSaving ? "Salvando…" : "Salvar")
+                    </button>
+                }
             </div>
         </div>
     </div>
