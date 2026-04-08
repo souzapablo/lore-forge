@@ -1,29 +1,93 @@
+using LoreForge.Core.Errors;
+using LoreForge.Core.Primitives;
 using System.Text.Json;
 
 namespace LoreForge.Core.Entities;
 
 public class Work
 {
-    public Guid Id { get; set; }
-    public string Title { get; set; } = default!;
-    public WorkType Type { get; set; }
-    public string[] Genres { get; set; } = [];
-    public WorkStatus Status { get; set; }
-    public JsonDocument? Progress { get; set; }
-    public WorkNotes Notes { get; set; } = new();
-    public string[] Tags { get; set; } = [];
-    public float[] Embedding { get; set; } = [];
-    public DateTime CreatedAt { get; set; }
+    private Work() { }
+
+    public Guid Id { get; private set; }
+    public string Title { get; private set; } = default!;
+    public WorkType Type { get; private set; }
+    public string[] Genres { get; private set; } = [];
+    public WorkStatus Status { get; private set; }
+    public JsonDocument? Progress { get; private set; }
+    public WorkNotes Notes { get; private set; } = new();
+    public string[] Tags { get; private set; } = [];
+    public float[] Embedding { get; private set; } = [];
+    public DateTime CreatedAt { get; private set; }
+
+    public static Result<Work> Create(
+        string title,
+        WorkType type,
+        string[] genres,
+        WorkStatus status,
+        JsonDocument? progress,
+        WorkNotes notes,
+        string[] tags,
+        float[] embedding)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return Result.Failure<Work>(WorkErrors.TitleEmpty);
+
+        if (!notes.HasContent)
+            return Result.Failure<Work>(WorkErrors.NotesEmpty);
+
+        return new Work
+        {
+            Id = Guid.NewGuid(),
+            Title = title,
+            Type = type,
+            Genres = genres,
+            Status = status,
+            Progress = progress,
+            Notes = notes,
+            Tags = tags,
+            Embedding = embedding
+        };
+    }
+
+    public Result Update(
+        string title,
+        string[] genres,
+        WorkStatus status,
+        JsonDocument? progress,
+        WorkNotes notes,
+        string[] tags,
+        float[] embedding)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return Result.Failure(WorkErrors.TitleEmpty);
+
+        if (!notes.HasContent)
+            return Result.Failure(WorkErrors.NotesEmpty);
+
+        Title = title;
+        Genres = genres;
+        Status = status;
+        Progress = progress;
+        Notes = notes;
+        Tags = tags;
+        Embedding = embedding;
+
+        return Result.Success();
+    }
 }
 
 public class WorkNotes
 {
-    public string? Worldbuilding { get; set; }
-    public string? Magic { get; set; }
-    public string? Characters { get; set; }
-    public string? Themes { get; set; }
-    public string? PlotStructure { get; set; }
-    public string? WhatILiked { get; set; }
+    public string? Worldbuilding { get; init; }
+    public string? Magic { get; init; }
+    public string? Characters { get; init; }
+    public string? Themes { get; init; }
+    public string? PlotStructure { get; init; }
+    public string? WhatILiked { get; init; }
+
+    public bool HasContent =>
+        Worldbuilding is not null || Magic is not null || Characters is not null ||
+        Themes is not null || PlotStructure is not null || WhatILiked is not null;
 
     public string ToEmbeddingText(string title)
     {
@@ -53,4 +117,3 @@ public enum WorkStatus
     Completed,
     Dropped
 }
-

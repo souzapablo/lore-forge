@@ -1,6 +1,5 @@
 using LoreForge.Api.Extensions;
 using LoreForge.Core.Entities;
-using LoreForge.Core.Errors;
 using LoreForge.Core.Ports;
 using LoreForge.Core.Primitives;
 using LoreForge.Infrastructure.Persistence;
@@ -19,9 +18,6 @@ public class UpsertWorldNoteHandler(LoreForgeDbContext db, IEmbeddingService emb
 {
     public async Task<Result<Guid>> HandleAsync(UpsertWorldNoteRequest request, CancellationToken ct)
     {
-        if (Validate(request) is { } error)
-            return Result.Failure<Guid>(error);
-
         var existing = await db.WorldNotes
             .FirstOrDefaultAsync(n => n.Title == request.Title && n.Category == request.Category, ct);
 
@@ -29,27 +25,22 @@ public class UpsertWorldNoteHandler(LoreForgeDbContext db, IEmbeddingService emb
 
         if (existing is not null)
         {
-            existing.Content = request.Content;
-            existing.Embedding = vector;
-            existing.UpdatedAt = DateTime.UtcNow;
+            var updateResult = existing.Update(request.Content, vector);
+            if (!updateResult.IsSuccess)
+                return Result.Failure<Guid>(updateResult.Error!);
+
             await db.SaveChangesAsync(ct);
             return Result.Success(existing.Id);
         }
 
-        var note = new WorldNote
-        {
-            Id = Guid.NewGuid(),
-            Category = request.Category,
-            Title = request.Title,
-            Content = request.Content,
-            Embedding = vector,
-            UpdatedAt = DateTime.UtcNow
-        };
+        var createResult = WorldNote.Create(request.Category, request.Title, request.Content, vector);
+        if (!createResult.IsSuccess)
+            return Result.Failure<Guid>(createResult.Error!);
 
-        db.WorldNotes.Add(note);
+        db.WorldNotes.Add(createResult.Value);
         await db.SaveChangesAsync(ct);
 
-        return Result.Success(note.Id);
+        return Result.Success(createResult.Value.Id);
     }
 
     public static void MapEndpoint(IEndpointRouteBuilder app) =>
@@ -61,15 +52,4 @@ public class UpsertWorldNoteHandler(LoreForgeDbContext db, IEmbeddingService emb
             var result = await handler.HandleAsync(request, ct);
             return result.ToHttpResult(id => Results.Ok(id));
         });
-
-    private static Error? Validate(UpsertWorldNoteRequest request)
-    {
-        if (string.IsNullOrWhiteSpace(request.Title))
-            return WorldNoteErrors.TitleEmpty;
-
-        if (string.IsNullOrWhiteSpace(request.Content))
-            return WorldNoteErrors.ContentEmpty;
-
-        return null;
-    }
 }

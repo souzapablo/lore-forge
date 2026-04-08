@@ -46,19 +46,19 @@ public class SearchInspirationToolTests
     [Fact(DisplayName = "Includes work title, type, genres and notes in output when works are found")]
     public async Task Should_IncludeWorkDetails_When_WorksFound()
     {
+        var work = Work.Create(
+            "Elden Ring",
+            WorkType.Game,
+            ["action", "rpg"],
+            WorkStatus.Completed,
+            null,
+            new WorkNotes { Themes = "Death and renewal" },
+            [],
+            []).Value;
+
         var vectorStore = Substitute.For<IVectorStore>();
         vectorStore.SearchWorksAsync(Arg.Any<float[]>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns([new Work
-            {
-                Id = Guid.NewGuid(),
-                Title = "Elden Ring",
-                Type = WorkType.Game,
-                Status = WorkStatus.Completed,
-                Genres = ["action", "rpg"],
-                Tags = [],
-                Notes = new WorkNotes { Themes = "Death and renewal" },
-                Embedding = []
-            }]);
+            .Returns([work]);
         vectorStore.SearchJournalEntriesAsync(Arg.Any<float[]>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns([]);
 
@@ -75,24 +75,25 @@ public class SearchInspirationToolTests
     [Fact(DisplayName = "Includes journal entry content and date in output when entries are found")]
     public async Task Should_IncludeJournalEntryContent_When_EntriesFound()
     {
+        var entry = JournalEntry.Create(
+            null,
+            null,
+            JournalSource.PlainText,
+            "The magic system felt elegant and intuitive.",
+            null,
+            []).Value;
+
         var vectorStore = Substitute.For<IVectorStore>();
         vectorStore.SearchWorksAsync(Arg.Any<float[]>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns([]);
         vectorStore.SearchJournalEntriesAsync(Arg.Any<float[]>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns([new JournalEntry
-            {
-                Id = Guid.NewGuid(),
-                Source = JournalSource.PlainText,
-                RawContent = "The magic system felt elegant and intuitive.",
-                Embedding = [],
-                CreatedAt = new DateTime(2026, 1, 15)
-            }]);
+            .Returns([entry]);
 
         var tool = CreateTool(vectorStore: vectorStore);
         var result = await tool.ExecuteAsync(InputWith("magic systems"), CancellationToken.None);
 
         Assert.Contains("The magic system felt elegant and intuitive.", result);
-        Assert.Contains("2026-01-15", result);
+        Assert.Contains(entry.CreatedAt.ToString("yyyy-MM-dd"), result);
     }
 
     [Fact(DisplayName = "Embeds the query before searching")]

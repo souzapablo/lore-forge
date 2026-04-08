@@ -39,6 +39,9 @@ builder.Services.AddScoped<IConversationRepository, DynamoConversationRepository
 builder.Services.AddScoped<IAgentService, BedrockAgentService>();
 builder.Services.AddScoped<IAgentTool, SearchInspirationTool>();
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 builder.Services.AddEndpointHandlers(typeof(Program).Assembly);
 
 builder.Services.AddOpenApi();
@@ -50,6 +53,8 @@ builder.Services.AddCors(options =>
         .AllowAnyHeader()));
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
