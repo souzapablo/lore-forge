@@ -1,0 +1,22 @@
+name: Copilot Code Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  copilot-review:
+    name: Copilot Review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Read review instructions
+        id: instructions
+        run: echo "content<<EOF" >> $GITHUB_OUTPUT && cat .github/instructions/code-review.instructions.md >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Request Copilot review
+        uses: github/copilot-code-review-action@v1
+        with:
+          instructions: ${{ steps.instructions.outputs.content }}
