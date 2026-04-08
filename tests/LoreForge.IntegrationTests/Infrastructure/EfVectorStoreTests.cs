@@ -67,23 +67,9 @@ public class EfVectorStoreTests(IntegrationTestWebAppFactory factory)
         return v;
     }
 
-    private static Work SeedWork(string title, float[] embedding) => new()
-    {
-        Id = Guid.NewGuid(),
-        Title = title,
-        Type = WorkType.Book,
-        Genres = [],
-        Status = WorkStatus.InProgress,
-        Tags = [],
-        Notes = new WorkNotes { Worldbuilding = "Some world" },
-        Embedding = embedding
-    };
+    private static Work SeedWork(string title, float[] embedding) =>
+        Work.Create(title, WorkType.Book, [], WorkStatus.InProgress, null, new WorkNotes { Worldbuilding = "Some world" }, [], embedding).Value;
 
-    private static JournalEntry SeedEntry(string content, float[] embedding) => new()
-    {
-        Id = Guid.NewGuid(),
-        Source = JournalSource.PlainText,
-        RawContent = content,
-        Embedding = embedding
-    };
+    private static JournalEntry SeedEntry(string content, float[] embedding) =>
+        JournalEntry.Create(null, null, JournalSource.PlainText, content, null, embedding).Value;
 }

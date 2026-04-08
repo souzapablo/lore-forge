@@ -1,6 +1,5 @@
 using LoreForge.Api.Extensions;
 using LoreForge.Core.Entities;
-using LoreForge.Core.Errors;
 using LoreForge.Core.Ports;
 using LoreForge.Core.Primitives;
 using LoreForge.Infrastructure.Persistence;
@@ -32,9 +31,6 @@ public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding) 
 {
     public async Task<Result<Guid>> HandleAsync(AddWorkRequest request, CancellationToken ct)
     {
-        if (Validate(request) is { } error)
-            return Result.Failure<Guid>(error);
-
         var notes = new WorkNotes
         {
             Worldbuilding = request.Notes.Worldbuilding,
@@ -45,26 +41,16 @@ public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding) 
             WhatILiked = request.Notes.WhatILiked
         };
 
-        var embeddedNotes = notes.ToEmbeddingText(request.Title);
-        var vector = await embedding.EmbedAsync(embeddedNotes, ct);
+        var vector = await embedding.EmbedAsync(notes.ToEmbeddingText(request.Title), ct);
 
-        var work = new Work
-        {
-            Id = Guid.NewGuid(),
-            Title = request.Title,
-            Type = request.Type,
-            Genres = request.Genres,
-            Status = request.Status,
-            Progress = request.Progress,
-            Notes = notes,
-            Tags = request.Tags,
-            Embedding = vector
-        };
+        var result = Work.Create(request.Title, request.Type, request.Genres, request.Status, request.Progress, notes, request.Tags, vector);
+        if (!result.IsSuccess)
+            return Result.Failure<Guid>(result.Error!);
 
-        db.Works.Add(work);
+        db.Works.Add(result.Value);
         await db.SaveChangesAsync(ct);
 
-        return Result.Success(work.Id);
+        return Result.Success(result.Value.Id);
     }
 
     public static void MapEndpoint(IEndpointRouteBuilder app) =>
@@ -76,30 +62,4 @@ public class AddWorkHandler(LoreForgeDbContext db, IEmbeddingService embedding) 
             var result = await handler.HandleAsync(request, ct);
             return result.ToHttpResult(id => Results.Created($"/logbook/works/{id}", id));
         });
-
-    private static Error? Validate(AddWorkRequest request)
-    {
-        if (string.IsNullOrWhiteSpace(request.Title))
-            return WorkErrors.TitleEmpty;
-
-        var hasNotes = request.Notes is
-        {
-            Worldbuilding: not null
-        } or {
-            Magic: not null
-        } or {
-            Characters: not null
-        } or {
-            Themes: not null
-        } or {
-            PlotStructure: not null
-        } or {
-            WhatILiked: not null
-        };
-
-        if (!hasNotes)
-            return WorkErrors.NotesEmpty;
-
-        return null;
-    }
 }

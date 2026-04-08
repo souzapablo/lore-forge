@@ -32,20 +32,12 @@ public class UpdateWorkHandler(LoreForgeDbContext db, IEmbeddingService embeddin
 {
     public async Task<Result<bool>> HandleAsync(Guid id, UpdateWorkRequest request, CancellationToken ct)
     {
-        if (Validate(request) is { } error)
-            return Result.Failure<bool>(error);
-
         var work = await db.Works.FirstOrDefaultAsync(w => w.Id == id, ct);
 
         if (work is null)
             return Result.Failure<bool>(WorkErrors.NotFound(id));
 
-        work.Title = request.Title;
-        work.Genres = request.Genres;
-        work.Status = request.Status;
-        work.Progress = request.Progress;
-        work.Tags = request.Tags;
-        work.Notes = new WorkNotes
+        var notes = new WorkNotes
         {
             Worldbuilding = request.Notes.Worldbuilding,
             Magic = request.Notes.Magic,
@@ -54,7 +46,12 @@ public class UpdateWorkHandler(LoreForgeDbContext db, IEmbeddingService embeddin
             PlotStructure = request.Notes.PlotStructure,
             WhatILiked = request.Notes.WhatILiked
         };
-        work.Embedding = await embedding.EmbedAsync(work.Notes.ToEmbeddingText(work.Title), ct);
+
+        var vector = await embedding.EmbedAsync(notes.ToEmbeddingText(request.Title), ct);
+
+        var result = work.Update(request.Title, request.Genres, request.Status, request.Progress, notes, request.Tags, vector);
+        if (!result.IsSuccess)
+            return Result.Failure<bool>(result.Error!);
 
         await db.SaveChangesAsync(ct);
 
@@ -71,30 +68,4 @@ public class UpdateWorkHandler(LoreForgeDbContext db, IEmbeddingService embeddin
             var result = await handler.HandleAsync(id, request, ct);
             return result.ToHttpResult(_ => Results.NoContent());
         });
-
-    private static Error? Validate(UpdateWorkRequest request)
-    {
-        if (string.IsNullOrWhiteSpace(request.Title))
-            return WorkErrors.TitleEmpty;
-
-        var hasNotes = request.Notes is
-        {
-            Worldbuilding: not null
-        } or {
-            Magic: not null
-        } or {
-            Characters: not null
-        } or {
-            Themes: not null
-        } or {
-            PlotStructure: not null
-        } or {
-            WhatILiked: not null
-        };
-
-        if (!hasNotes)
-            return WorkErrors.NotesEmpty;
-
-        return null;
-    }
 }

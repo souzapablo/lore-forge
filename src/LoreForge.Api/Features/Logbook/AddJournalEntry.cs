@@ -21,9 +21,6 @@ public class AddJournalEntryHandler(LoreForgeDbContext db, IEmbeddingService emb
 {
     public async Task<Result<Guid>> HandleAsync(AddJournalEntryRequest request, CancellationToken ct)
     {
-        if (Validate(request) is { } error)
-            return Result.Failure<Guid>(error);
-
         if (request.WorkId is not null)
         {
             var workExists = await db.Works.AnyAsync(w => w.Id == request.WorkId, ct);
@@ -33,21 +30,14 @@ public class AddJournalEntryHandler(LoreForgeDbContext db, IEmbeddingService emb
 
         var vector = await embedding.EmbedAsync(request.RawContent, ct);
 
-        var entry = new JournalEntry
-        {
-            Id = Guid.NewGuid(),
-            WorkId = request.WorkId,
-            ProgressSnapshot = request.ProgressSnapshot,
-            Source = request.Source,
-            RawContent = request.RawContent,
-            FileRef = request.FileRef,
-            Embedding = vector
-        };
+        var result = JournalEntry.Create(request.WorkId, request.ProgressSnapshot, request.Source, request.RawContent, request.FileRef, vector);
+        if (!result.IsSuccess)
+            return Result.Failure<Guid>(result.Error!);
 
-        db.JournalEntries.Add(entry);
+        db.JournalEntries.Add(result.Value);
         await db.SaveChangesAsync(ct);
 
-        return Result.Success(entry.Id);
+        return Result.Success(result.Value.Id);
     }
 
     public static void MapEndpoint(IEndpointRouteBuilder app) =>
@@ -59,15 +49,4 @@ public class AddJournalEntryHandler(LoreForgeDbContext db, IEmbeddingService emb
             var result = await handler.HandleAsync(request, ct);
             return result.ToHttpResult(id => Results.Created($"/logbook/journal-entries/{id}", id));
         });
-    
-    private static Error? Validate(AddJournalEntryRequest request)
-    {
-        if (string.IsNullOrWhiteSpace(request.RawContent))
-            return JournalEntryErrors.ContentEmpty;
-
-        if (request.Source == JournalSource.File && string.IsNullOrWhiteSpace(request.FileRef))
-            return JournalEntryErrors.FileRefRequired;
-
-        return null;
-    }
 }
