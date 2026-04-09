@@ -57,10 +57,15 @@ public class BedrockAgentService(
 
         for (var iteration = 0; iteration < MaxIterations; iteration++)
         {
+            var systemBlocks = new List<SystemContentBlock> { new() { Text = _systemPrompt } };
+            systemBlocks.AddRange(toolList
+                .Where(t => t.ToolGuidance is not null)
+                .Select(t => new SystemContentBlock { Text = t.ToolGuidance! }));
+
             var response = await client.ConverseAsync(new ConverseRequest
             {
                 ModelId = _modelId,
-                System = [new SystemContentBlock { Text = _systemPrompt }],
+                System = systemBlocks,
                 Messages = messages,
                 ToolConfig = toolConfig
             }, ct);

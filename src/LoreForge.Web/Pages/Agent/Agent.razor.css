@@ -181,20 +181,20 @@
 }
 
 /* ── Markdown rendering inside assistant bubbles ── */
-.chat-bubble-md :global(p)            { margin: 0 0 10px; }
-.chat-bubble-md :global(p:last-child) { margin-bottom: 0; }
-.chat-bubble-md :global(ul),
-.chat-bubble-md :global(ol)           { padding-left: 20px; margin: 0 0 10px; }
-.chat-bubble-md :global(li)           { margin-bottom: 4px; }
-.chat-bubble-md :global(strong)       { color: var(--text-primary); font-weight: 600; }
-.chat-bubble-md :global(em)           { color: var(--text-secondary); }
-.chat-bubble-md :global(code)         { font-family: monospace; font-size: 12px; background: var(--bg-raised); border: 1px solid var(--border); border-radius: 3px; padding: 1px 5px; }
-.chat-bubble-md :global(pre)          { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; overflow-x: auto; margin: 0 0 10px; }
-.chat-bubble-md :global(pre code)     { background: none; border: none; padding: 0; }
-.chat-bubble-md :global(h1),
-.chat-bubble-md :global(h2),
-.chat-bubble-md :global(h3)           { color: var(--text-primary); font-weight: 600; margin: 12px 0 6px; }
-.chat-bubble-md :global(h1)           { font-size: 15px; }
-.chat-bubble-md :global(h2)           { font-size: 14px; }
-.chat-bubble-md :global(h3)           { font-size: 13px; }
-.chat-bubble-md :global(blockquote)   { border-left: 2px solid var(--gold-dim); padding-left: 12px; color: var(--text-muted); margin: 0 0 10px; }
+.chat-bubble-md ::deep p            { margin: 0 0 10px; }
+.chat-bubble-md ::deep p:last-child { margin-bottom: 0; }
+.chat-bubble-md ::deep ul,
+.chat-bubble-md ::deep ol           { padding-left: 20px; margin: 0 0 10px; }
+.chat-bubble-md ::deep li           { margin-bottom: 4px; }
+.chat-bubble-md ::deep strong       { color: var(--text-primary); font-weight: 600; }
+.chat-bubble-md ::deep em           { color: var(--text-secondary); }
+.chat-bubble-md ::deep code         { font-family: monospace; font-size: 12px; background: var(--bg-raised); border: 1px solid var(--border); border-radius: 3px; padding: 1px 5px; }
+.chat-bubble-md ::deep pre          { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; overflow-x: auto; margin: 0 0 10px; }
+.chat-bubble-md ::deep pre code     { background: none; border: none; padding: 0; }
+.chat-bubble-md ::deep h1,
+.chat-bubble-md ::deep h2,
+.chat-bubble-md ::deep h3           { color: var(--text-primary); font-weight: 600; margin: 12px 0 6px; }
+.chat-bubble-md ::deep h1           { font-size: 15px; }
+.chat-bubble-md ::deep h2           { font-size: 14px; }
+.chat-bubble-md ::deep h3           { font-size: 13px; }
+.chat-bubble-md ::deep blockquote   { border-left: 3px solid var(--gold-dim); background: var(--bg-raised); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 8px 12px; color: var(--text-secondary); margin: 0 0 10px; font-style: italic; }
