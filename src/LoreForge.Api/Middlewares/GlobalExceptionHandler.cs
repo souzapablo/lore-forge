@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
+namespace LoreForge.Api.Middlewares;
+
 public class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;
@@ -14,11 +16,11 @@ public class GlobalExceptionHandler : IExceptionHandler
 
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
-        Exception exception, 
+        Exception exception,
         CancellationToken cancellationToken)
     {
         var detail = _environment.IsDevelopment() ?
-            exception.ToString() : 
+            exception.ToString() :
             "An unexpected error occurred. Please try again later.";
 
         _logger.LogError(exception, "Exception occurred: {Message}", exception.Message);

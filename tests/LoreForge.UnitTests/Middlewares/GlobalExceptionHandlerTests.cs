@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Diagnostics;
+using LoreForge.Api.Middlewares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;

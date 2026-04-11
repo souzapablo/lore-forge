@@ -1,6 +1,7 @@
 using Amazon.BedrockRuntime;
 using Amazon.DynamoDBv2;
 using LoreForge.Api.Extensions;
+using LoreForge.Api.Middlewares;
 using LoreForge.Core.Ports;
 using LoreForge.Infrastructure.Bedrock;
 using LoreForge.Infrastructure.Bedrock.AgentTools;
@@ -38,6 +39,7 @@ builder.Services.AddScoped<IVectorStore, EfVectorStore>();
 builder.Services.AddScoped<IConversationRepository, DynamoConversationRepository>();
 builder.Services.AddScoped<IAgentService, BedrockAgentService>();
 builder.Services.AddScoped<IAgentTool, SearchInspirationTool>();
+builder.Services.AddScoped<IAgentTool, CheckWorldConsistencyTool>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <Content Include="assets/prompts/*.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="assets/prompts/**/*.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
