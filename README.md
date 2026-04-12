@@ -38,7 +38,7 @@ LoreForge.sln
 │   │   └── Features/
 │   │       ├── Logbook/         # AddWork, GetWorks, DeleteWork, AddJournalEntry, GetJournalEntries
 │   │       ├── Agent/           # Chat, GetHistory, ClearHistory
-│   │       └── WorldNotes/      # UpsertNote, GetNotes
+│   │       └── WorldNotes/      # UpsertWorldNote, GetWorldNotes, GetWorldNoteById, DeleteWorldNote
 │   ├── LoreForge.Core           # Domain entities + port interfaces (no external deps)
 │   │   ├── Entities/
 │   │   ├── Errors/              # Named error factories per entity
@@ -58,7 +58,7 @@ LoreForge.sln
 │       ├── Pages/
 │       │   ├── Works/           # Works.razor, WorkDetail.razor
 │       │   ├── Logbook/         # JournalEntries.razor
-│       │   ├── WorldNotes/      # WorldNotes.razor
+│       │   ├── WorldNotes/      # WorldNotes.razor, WorldNoteDetail.razor
 │       │   └── Agent/           # Agent.razor (Sibila chat)
 │       └── Shared/
 └── tests/
