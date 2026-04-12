@@ -40,6 +40,7 @@ builder.Services.AddScoped<IConversationRepository, DynamoConversationRepository
 builder.Services.AddScoped<IAgentService, BedrockAgentService>();
 builder.Services.AddScoped<IAgentTool, SearchInspirationTool>();
 builder.Services.AddScoped<IAgentTool, CheckWorldConsistencyTool>();
+builder.Services.AddScoped<IAgentTool, SuggestCharacterArcTool>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
