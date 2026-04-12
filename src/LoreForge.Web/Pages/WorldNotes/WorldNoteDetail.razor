@@ -1,0 +1,78 @@
+@page "/world-notes/{Id:guid}"
+
+<PageTitle>@(_note?.Title ?? "Nota") — Lore Forge</PageTitle>
+
+@if (_loading)
+{
+    <div class="loading-state">
+        <span class="loading-spinner">◌</span> Carregando nota…
+    </div>
+}
+else if (_notFound)
+{
+    <div class="empty-state">
+        <div class="empty-state-sigil">◉</div>
+        <div class="empty-state-title">Nota não encontrada</div>
+        <div class="empty-state-sub">
+            <button class="btn btn-ghost" @onclick='() => Nav.NavigateTo("/world-notes")'>← Voltar para notas</button>
+        </div>
+    </div>
+}
+else if (_note is not null)
+{
+    <div class="page-header">
+        <div class="page-header-text">
+            <div class="note-detail-breadcrumb">
+                <button class="btn btn-ghost btn-sm" @onclick='() => Nav.NavigateTo("/world-notes")'>← Notas do Mundo</button>
+            </div>
+            <div class="note-detail-title-row">
+                <span class="note-row-badge @CategoryClass(_note.Category)">@CategoryLabel(_note.Category)</span>
+                <h1>@_note.Title</h1>
+            </div>
+            <div class="note-detail-meta">
+                Atualizado em @_note.UpdatedAt.ToString("dd/MM/yyyy")
+            </div>
+        </div>
+        <div class="page-header-actions">
+            @if (_editing)
+            {
+                <button class="btn btn-ghost" @onclick="CancelEdit">Cancelar</button>
+                <button class="btn btn-gold" @onclick="SaveAsync" disabled="@_saving">
+                    @(_saving ? "Salvando…" : "Salvar")
+                </button>
+            }
+            else if (_confirmingDelete)
+            {
+                <span class="delete-confirm-label">Tem certeza?</span>
+                <button class="btn btn-ghost" @onclick="CancelDelete">Não</button>
+                <button class="btn btn-danger" @onclick="ConfirmDeleteAsync">Sim, excluir</button>
+            }
+            else
+            {
+                <button class="btn btn-ghost" @onclick="RequestDelete">Excluir</button>
+                <button class="btn btn-ghost" @onclick="StartEdit">Alterar</button>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="field-error-banner" style="margin: 0 28px;">@_errorMessage</div>
+    }
+
+    <div class="page-content">
+        @if (_editing)
+        {
+            <div class="field-group">
+                <label class="field-label">Conteúdo</label>
+                <textarea class="field-textarea note-detail-textarea" @bind="_editContent"></textarea>
+            </div>
+        }
+        else
+        {
+            <div class="note-card">
+                <div class="note-card-body note-detail-content">@_note.Content</div>
+            </div>
+        }
+    </div>
+}

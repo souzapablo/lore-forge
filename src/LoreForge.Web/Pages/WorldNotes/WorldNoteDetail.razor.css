@@ -1,0 +1,28 @@
+.note-detail-breadcrumb { margin-bottom: 10px; }
+
+.note-detail-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.note-detail-title-row h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+
+.note-detail-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.note-detail-content {
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    color: var(--text-secondary);
+}
+
+.note-detail-textarea {
+    min-height: 260px;
+    resize: vertical;
+}

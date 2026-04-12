@@ -27,7 +27,7 @@ public class AnalyzePlotStructureToolTests
         Assert.Equal("No relevant plot structure references found.", result);
     }
 
-    [Fact(DisplayName = "Includes world lore section with category, title and content when notes are found")]
+    [Fact(DisplayName = "Includes world lore section with category, title, url and content when notes are found")]
     public async Task Should_IncludeWorldLoreSection_When_OnlyNotesFound()
     {
         var note = WorldNote.Create(WorldNoteCategory.Plot, "The Betrayal", "The king betrays his council in act two.", []).Value;
@@ -38,11 +38,13 @@ public class AnalyzePlotStructureToolTests
         vectorStore.SearchJournalEntriesAsync(Arg.Any<float[]>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns([]);
 
-        var tool = CreateTool(vectorStore: vectorStore);
+        var config = BuildConfigWithWebBaseUrl("https://loreforge.example.com");
+        var tool = CreateTool(vectorStore: vectorStore, config: config);
         var result = await tool.ExecuteAsync(InputWith("act two turning point"), CancellationToken.None);
 
         Assert.Contains("## Relevant world lore", result);
         Assert.Contains("### The Betrayal [Plot]", result);
+        Assert.Contains($"URL: https://loreforge.example.com/world-notes/{note.Id}", result);
         Assert.Contains("The king betrays his council in act two.", result);
         Assert.DoesNotContain("## Journal observations on plot", result);
     }
@@ -180,6 +182,14 @@ public class AnalyzePlotStructureToolTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Bedrock:ToolGuidancePaths:analyze_plot_structure"] = guidancePath
+            })
+            .Build();
+
+    private static IConfiguration BuildConfigWithWebBaseUrl(string webBaseUrl) =>
+        new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["WebBaseUrl"] = webBaseUrl
             })
             .Build();
 

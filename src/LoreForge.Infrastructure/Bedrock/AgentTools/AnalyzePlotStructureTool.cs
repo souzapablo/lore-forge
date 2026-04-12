@@ -14,6 +14,8 @@ public class AnalyzePlotStructureTool(
 {
     private const int TopK = 5;
 
+    private readonly string _webBaseUrl = (config["WebBaseUrl"] ?? "").TrimEnd('/');
+
     public string Name => "analyze_plot_structure";
 
     public string Description =>
@@ -56,6 +58,7 @@ public class AnalyzePlotStructureTool(
             foreach (var note in notes)
             {
                 sb.AppendLine($"### {note.Title} [{note.Category}]");
+                sb.AppendLine($"URL: {_webBaseUrl}/world-notes/{note.Id}");
                 sb.AppendLine(note.Content);
                 sb.AppendLine();
             }
